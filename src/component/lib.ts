@@ -144,11 +144,8 @@ async function fetchSteps(
         `Missing steps ${lastDelta ? lastDelta.version + 1 : afterVersion}...${targetVersion}`
       );
     }
-    for (const step of nextDelta.steps.slice(
-      0,
-      targetVersion - lastDelta.version
-    )) {
-      steps.push(step);
+    for (let i = 0; i < targetVersion - lastDelta.version; i++) {
+      steps.push(nextDelta.steps[i]);
       clientIds.push(nextDelta.clientId);
     }
   }
