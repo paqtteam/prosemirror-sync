@@ -16,7 +16,13 @@ export const submitSnapshot = mutation({
       )
       .first();
     if (existing) {
-      throw new Error(`Snapshot already exists: ${args.id}`);
+      if (existing.content === args.content) {
+        return;
+      }
+      throw new Error(
+        `Snapshot ${args.id} at version ${args.version} already exists ` +
+          `with different content: ${existing.content} !== ${args.content}`
+      );
     }
     await ctx.db.insert("snapshots", {
       id: args.id,

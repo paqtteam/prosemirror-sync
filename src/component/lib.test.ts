@@ -247,4 +247,34 @@ describe("prosemirror lib", () => {
     expect(clientIds).toEqual(["client1", "client1"]);
     expect(version).toEqual(2);
   });
+  test("submitSnapshot same content is idempotent", async () => {
+    const t = convexTest(schema, modules);
+    const id = crypto.randomUUID();
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 0,
+      content: "content",
+    });
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 0,
+      content: "content",
+    });
+  });
+  test("submitSnapshot different content is error", async () => {
+    const t = convexTest(schema, modules);
+    const id = crypto.randomUUID();
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 0,
+      content: "content",
+    });
+    await expect(
+      t.mutation(api.lib.submitSnapshot, {
+        id,
+        version: 0,
+        content: "other content",
+      })
+    ).rejects.toThrow();
+  });
 });
