@@ -1,16 +1,12 @@
 import {
   ApiFromModules,
   Expand,
-  FilterApi,
   FunctionReference,
-  GenericDataModel,
-  GenericMutationCtx,
-  GenericQueryCtx,
   mutationGeneric,
   queryGeneric,
 } from "convex/server";
-import { GenericId, v } from "convex/values";
-import { api } from "../component/_generated/api";
+import { v } from "convex/values";
+import { Mounts } from "../component/_generated/api";
 import { vClientId } from "../component/schema";
 
 export type SyncApi = ApiFromModules<{
@@ -18,9 +14,7 @@ export type SyncApi = ApiFromModules<{
 }>["sync"];
 
 export class Prosemirror {
-  constructor(
-    public component: UseApi<typeof api>,
-  ) {}
+  constructor(public component: UseApi<Mounts>) {}
   syncApi() {
     return {
       submitSnapshot: mutationGeneric({
@@ -75,23 +69,6 @@ export class Prosemirror {
 
 /* Type utils follow */
 
-type RunQueryCtx = {
-  runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
-};
-type RunMutationCtx = {
-  runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
-};
-
-export type OpaqueIds<T> = T extends GenericId<infer _T> | string
-  ? string
-  : T extends (infer U)[]
-    ? OpaqueIds<U>[]
-    : T extends ArrayBuffer
-      ? ArrayBuffer
-      : T extends object
-        ? { [K in keyof T]: OpaqueIds<T[K]> }
-        : T;
-
 export type UseApi<API> = Expand<{
   [mod in keyof API]: API[mod] extends FunctionReference<
     infer FType,
@@ -100,12 +77,6 @@ export type UseApi<API> = Expand<{
     infer FReturnType,
     infer FComponentPath
   >
-    ? FunctionReference<
-        FType,
-        "internal",
-        OpaqueIds<FArgs>,
-        OpaqueIds<FReturnType>,
-        FComponentPath
-      >
+    ? FunctionReference<FType, "internal", FArgs, FReturnType, FComponentPath>
     : UseApi<API[mod]>;
 }>;
