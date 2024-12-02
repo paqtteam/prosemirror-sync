@@ -80,12 +80,17 @@ export const get = query({
     version: v.optional(v.number()),
     ignoreSteps: v.optional(v.boolean()),
   },
-  returns: v.object({
-    snapshot: v.union(v.string(), v.null()),
-    steps: v.array(v.string()),
-    clientIds: v.array(vClientId),
-    version: v.number(),
-  }),
+  returns: v.union(
+    v.object({
+      content: v.null(),
+    }),
+    v.object({
+      content: v.string(),
+      steps: v.array(v.string()),
+      clientIds: v.array(vClientId),
+      version: v.number(),
+    })
+  ),
   handler: async (ctx, args) => {
     const snapshot = await ctx.db
       .query("snapshots")
@@ -96,10 +101,7 @@ export const get = query({
       .first();
     if (!snapshot) {
       return {
-        snapshot: null,
-        steps: [],
-        clientIds: [],
-        version: 0,
+        content: null,
       };
     }
     const [steps, clientIds] =
@@ -107,7 +109,7 @@ export const get = query({
         ? [[], []]
         : await fetchSteps(ctx, args.id, snapshot.version, args.version);
     return {
-      snapshot: snapshot.content,
+      content: snapshot.content,
       steps,
       clientIds,
       version: snapshot.version + steps.length,
