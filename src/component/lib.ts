@@ -5,7 +5,28 @@ import { vClientId } from "./schema";
 
 const MAX_DELTA_FETCH = 1000;
 
-export const sync = mutation({
+export const create = mutation({
+  args: { id: v.string(), version: v.number(), content: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("snapshots")
+      .withIndex("id_version", (q) =>
+        q.eq("id", args.id).eq("version", args.version)
+      )
+      .first();
+    if (existing) {
+      throw new Error(`Snapshot already exists: ${args.id}`);
+    }
+    await ctx.db.insert("snapshots", {
+      id: args.id,
+      version: args.version,
+      content: args.content,
+    });
+  },
+});
+
+export const submitSteps = mutation({
   args: {
     id: v.string(),
     version: v.number(),
