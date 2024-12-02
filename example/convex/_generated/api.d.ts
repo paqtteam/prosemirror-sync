@@ -40,13 +40,56 @@ export declare const internal: FilterApi<
 export declare const components: {
   prosemirror: {
     lib: {
-      add: FunctionReference<
+      create: FunctionReference<
         "mutation",
         "internal",
-        { count: number; name: string; shards?: number },
+        { content: string; id: string; version: number },
         null
       >;
-      count: FunctionReference<"query", "internal", { name: string }, number>;
+      get: FunctionReference<
+        "query",
+        "internal",
+        { id: string; ignoreSteps?: boolean; version?: number },
+        | { content: null }
+        | {
+            clientIds: Array<string | number>;
+            content: string;
+            steps: Array<string>;
+            version: number;
+          }
+      >;
+      getLatestVersion: FunctionReference<
+        "query",
+        "internal",
+        { id: string },
+        null | number
+      >;
+      getSteps: FunctionReference<
+        "query",
+        "internal",
+        { id: string; version: number },
+        {
+          clientIds: Array<string | number>;
+          steps: Array<string>;
+          version: number;
+        }
+      >;
+      submitSteps: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          clientId: string | number;
+          id: string;
+          steps: Array<string>;
+          version: number;
+        },
+        | {
+            clientIds: Array<string | number>;
+            status: "needs-rebase";
+            steps: Array<string>;
+          }
+        | { status: "synced" }
+      >;
     };
   };
 };

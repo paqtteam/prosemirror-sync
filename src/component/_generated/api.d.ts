@@ -28,13 +28,56 @@ declare const fullApi: ApiFromModules<{
 }>;
 export type Mounts = {
   lib: {
-    add: FunctionReference<
+    create: FunctionReference<
       "mutation",
       "public",
-      { count: number; name: string; shards?: number },
+      { content: string; id: string; version: number },
       null
     >;
-    count: FunctionReference<"query", "public", { name: string }, number>;
+    get: FunctionReference<
+      "query",
+      "public",
+      { id: string; ignoreSteps?: boolean; version?: number },
+      | { content: null }
+      | {
+          clientIds: Array<string | number>;
+          content: string;
+          steps: Array<string>;
+          version: number;
+        }
+    >;
+    getLatestVersion: FunctionReference<
+      "query",
+      "public",
+      { id: string },
+      null | number
+    >;
+    getSteps: FunctionReference<
+      "query",
+      "public",
+      { id: string; version: number },
+      {
+        clientIds: Array<string | number>;
+        steps: Array<string>;
+        version: number;
+      }
+    >;
+    submitSteps: FunctionReference<
+      "mutation",
+      "public",
+      {
+        clientId: string | number;
+        id: string;
+        steps: Array<string>;
+        version: number;
+      },
+      | {
+          clientIds: Array<string | number>;
+          status: "needs-rebase";
+          steps: Array<string>;
+        }
+      | { status: "synced" }
+    >;
   };
 };
 // For now fullApiWithMounts is only fullApi which provides
