@@ -26,6 +26,19 @@ export const create = mutation({
   },
 });
 
+export const getLatestVersion = query({
+  args: { id: v.string() },
+  returns: v.union(v.null(), v.number()),
+  handler: async (ctx, args) => {
+    return ctx.db
+      .query("snapshots")
+      .withIndex("id_version", (q) => q.eq("id", args.id))
+      .order("desc")
+      .first()
+      .then((s) => s?.version ?? null);
+  },
+});
+
 export const submitSteps = mutation({
   args: {
     id: v.string(),
