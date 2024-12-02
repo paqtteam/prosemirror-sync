@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
+import { vClientId } from "./schema";
 
 const MAX_DELTA_FETCH = 1000;
 
@@ -8,13 +9,13 @@ export const sync = mutation({
   args: {
     id: v.string(),
     version: v.number(),
-    clientId: v.string(),
+    clientId: vClientId,
     steps: v.array(v.string()),
   },
   returns: v.union(
     v.object({
       status: v.literal("needs-rebase"),
-      clientIds: v.array(v.string()),
+      clientIds: v.array(vClientId),
       steps: v.array(v.string()),
     }),
     v.object({ status: v.literal("synced") })
@@ -49,7 +50,7 @@ function stepsAndClientIds(deltas: Doc<"deltas">[]) {
       steps.push(step);
     }
   }
-  return [steps, clientIds];
+  return [steps, clientIds] as const;
 }
 
 export const get = query({
@@ -61,7 +62,7 @@ export const get = query({
   returns: v.object({
     snapshot: v.union(v.string(), v.null()),
     steps: v.array(v.string()),
-    clientIds: v.array(v.string()),
+    clientIds: v.array(vClientId),
     version: v.number(),
   }),
   handler: async (ctx, args) => {
@@ -129,7 +130,7 @@ async function fetchSteps(
         targetVersion ?? "end"
       } stopped at ${deltas[deltas.length - 1].version}`
     );
-    return [steps, clientIds];
+    return [steps, clientIds] as const;
   }
   const lastDelta = deltas[deltas.length - 1];
   if (targetVersion && (!lastDelta || lastDelta.version < targetVersion)) {
@@ -154,14 +155,14 @@ async function fetchSteps(
       `Steps mismatch ${afterVersion}...${targetVersion}: ${steps.length}`
     );
   }
-  return [steps, clientIds];
+  return [steps, clientIds] as const;
 }
 
 export const getSteps = query({
   args: { id: v.string(), version: v.number() },
   returns: v.object({
     steps: v.array(v.string()),
-    clientIds: v.array(v.string()),
+    clientIds: v.array(vClientId),
     version: v.number(),
   }),
   handler: async (ctx, args) => {
