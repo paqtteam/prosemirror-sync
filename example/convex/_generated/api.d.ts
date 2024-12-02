@@ -38,7 +38,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  counter: {
+  prosemirror: {
     lib: {
       add: FunctionReference<
         "mutation",

@@ -49,7 +49,7 @@ export class Prosemirror<Shards extends Record<string, number>> {
    * For easy re-exporting.
    * Apps can do
    * ```ts
-   * export const { add, count } = counter.api();
+   * export const { add, count } = prosemirror.api();
    * ```
    */
   api() {

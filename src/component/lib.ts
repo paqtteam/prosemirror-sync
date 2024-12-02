@@ -10,16 +10,16 @@ export const add = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const shard = Math.floor(Math.random() * (args.shards ?? 1));
-    const counter = await ctx.db
-      .query("counters")
+    const prosemirror = await ctx.db
+      .query("prosemirrors")
       .withIndex("name", (q) => q.eq("name", args.name).eq("shard", shard))
       .unique();
-    if (counter) {
-      await ctx.db.patch(counter._id, {
-        value: counter.value + args.count,
+    if (prosemirror) {
+      await ctx.db.patch(prosemirror._id, {
+        value: prosemirror.value + args.count,
       });
     } else {
-      await ctx.db.insert("counters", {
+      await ctx.db.insert("prosemirrors", {
         name: args.name,
         value: args.count,
         shard,
@@ -32,10 +32,13 @@ export const count = query({
   args: { name: v.string() },
   returns: v.number(),
   handler: async (ctx, args) => {
-    const counters = await ctx.db
-      .query("counters")
+    const prosemirrors = await ctx.db
+      .query("prosemirrors")
       .withIndex("name", (q) => q.eq("name", args.name))
       .collect();
-    return counters.reduce((sum, counter) => sum + counter.value, 0);
+    return prosemirrors.reduce(
+      (sum, prosemirror) => sum + prosemirror.value,
+      0
+    );
   },
 });

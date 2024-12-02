@@ -1,11 +1,11 @@
 import { internalMutation, query, mutation } from "./_generated/server";
 import { components } from "./_generated/api";
-import { Prosemirror } from "@convex-dev/counter";
+import { Prosemirror } from "@convex-dev/prosemirror";
 
-const counter = new Prosemirror(components.counter, {
+const prosemirror = new Prosemirror(components.prosemirror, {
   shards: { beans: 10, users: 100 },
 });
-const numUsers = counter.for("users");
+const numUsers = prosemirror.for("users");
 
 export const addOne = mutation({
   args: {},
@@ -24,9 +24,9 @@ export const getCount = query({
 export const usingClient = internalMutation({
   args: {},
   handler: async (ctx, _args) => {
-    await counter.add(ctx, "accomplishments");
-    await counter.add(ctx, "beans", 2);
-    const count = await counter.count(ctx, "beans");
+    await prosemirror.add(ctx, "accomplishments");
+    await prosemirror.add(ctx, "beans", 2);
+    const count = await prosemirror.count(ctx, "beans");
     return count;
   },
 });
@@ -44,16 +44,16 @@ export const usingFunctions = internalMutation({
 export const directCall = internalMutation({
   args: {},
   handler: async (ctx, _args) => {
-    await ctx.runMutation(components.counter.lib.add, {
+    await ctx.runMutation(components.prosemirror.lib.add, {
       name: "pennies",
       count: 250,
     });
-    await ctx.runMutation(components.counter.lib.add, {
+    await ctx.runMutation(components.prosemirror.lib.add, {
       name: "beans",
       count: 3,
       shards: 100,
     });
-    const count = await ctx.runQuery(components.counter.lib.count, {
+    const count = await ctx.runQuery(components.prosemirror.lib.count, {
       name: "beans",
     });
     return count;
@@ -61,4 +61,4 @@ export const directCall = internalMutation({
 });
 
 // Direct re-export of component's API.
-export const { add, count } = counter.api();
+export const { add, count } = prosemirror.api();
