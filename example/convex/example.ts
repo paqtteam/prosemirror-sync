@@ -3,5 +3,5 @@ import { components } from "./_generated/api";
 import { Prosemirror } from "@convex-dev/prosemirror";
 
 const prosemirror = new Prosemirror(components.prosemirror);
-export const { create, submitSteps, get, getSteps, getLatestVersion } =
+export const { submitSnapshot, submitSteps, get, getSteps, getLatestVersion } =
   prosemirror.syncApi();

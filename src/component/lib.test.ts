@@ -227,7 +227,11 @@ describe("prosemirror lib", () => {
   test("create, submit, then get works", async () => {
     const t = convexTest(schema, modules);
     const id = crypto.randomUUID();
-    await t.mutation(api.lib.create, { id, version: 0, content: "content" });
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 0,
+      content: "content",
+    });
     await t.mutation(api.lib.submitSteps, {
       id,
       clientId: "client1",

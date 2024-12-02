@@ -40,12 +40,6 @@ export declare const internal: FilterApi<
 export declare const components: {
   prosemirror: {
     lib: {
-      create: FunctionReference<
-        "mutation",
-        "internal",
-        { content: string; id: string; version: number },
-        null
-      >;
       get: FunctionReference<
         "query",
         "internal",
@@ -73,6 +67,12 @@ export declare const components: {
           steps: Array<string>;
           version: number;
         }
+      >;
+      submitSnapshot: FunctionReference<
+        "mutation",
+        "internal",
+        { content: string; id: string; version: number },
+        null
       >;
       submitSteps: FunctionReference<
         "mutation",

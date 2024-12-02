@@ -23,14 +23,14 @@ export class Prosemirror {
   ) {}
   syncApi() {
     return {
-      create: mutationGeneric({
+      submitSnapshot: mutationGeneric({
         args: {
           id: v.string(),
           version: v.number(),
           content: v.string(),
         },
         handler: async (ctx, args) => {
-          return ctx.runMutation(this.component.lib.create, args);
+          return ctx.runMutation(this.component.lib.submitSnapshot, args);
         },
       }),
       getLatestVersion: queryGeneric({

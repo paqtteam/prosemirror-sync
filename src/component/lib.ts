@@ -5,7 +5,7 @@ import { vClientId } from "./schema";
 
 const MAX_DELTA_FETCH = 1000;
 
-export const create = mutation({
+export const submitSnapshot = mutation({
   args: { id: v.string(), version: v.number(), content: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
