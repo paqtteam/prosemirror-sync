@@ -40,12 +40,6 @@ export type Mounts = {
           version: number;
         }
     >;
-    getLatestVersion: FunctionReference<
-      "query",
-      "public",
-      { id: string },
-      null | number
-    >;
     getSteps: FunctionReference<
       "query",
       "public",
@@ -55,6 +49,12 @@ export type Mounts = {
         steps: Array<string>;
         version: number;
       }
+    >;
+    getVersion: FunctionReference<
+      "query",
+      "public",
+      { id: string },
+      null | number
     >;
     submitSnapshot: FunctionReference<
       "mutation",

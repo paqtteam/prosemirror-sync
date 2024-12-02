@@ -52,12 +52,6 @@ export declare const components: {
             version: number;
           }
       >;
-      getLatestVersion: FunctionReference<
-        "query",
-        "internal",
-        { id: string },
-        null | number
-      >;
       getSteps: FunctionReference<
         "query",
         "internal",
@@ -67,6 +61,12 @@ export declare const components: {
           steps: Array<string>;
           version: number;
         }
+      >;
+      getVersion: FunctionReference<
+        "query",
+        "internal",
+        { id: string },
+        null | number
       >;
       submitSnapshot: FunctionReference<
         "mutation",

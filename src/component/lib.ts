@@ -32,7 +32,7 @@ export const submitSnapshot = mutation({
   },
 });
 
-export const getLatestVersion = query({
+export const getVersion = query({
   args: { id: v.string() },
   returns: v.union(v.null(), v.number()),
   handler: async (ctx, args) => {

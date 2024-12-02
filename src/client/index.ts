@@ -33,10 +33,10 @@ export class Prosemirror {
           return ctx.runMutation(this.component.lib.submitSnapshot, args);
         },
       }),
-      getLatestVersion: queryGeneric({
+      getVersion: queryGeneric({
         args: { id: v.string() },
         handler: async (ctx, args) => {
-          return ctx.runQuery(this.component.lib.getLatestVersion, args);
+          return ctx.runQuery(this.component.lib.getVersion, args);
         },
       }),
       submitSteps: mutationGeneric({
