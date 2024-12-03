@@ -14,9 +14,8 @@ const defaultExtensions = [
 ];
 const schema = getSchema(defaultExtensions);
 
-function App() {
-  const id = "3";
-  const sync = useSync(id, {
+function App(props: { id: string }) {
+  const sync = useSync(props.id, {
     syncApi: api.example,
     schema,
   });
@@ -27,18 +26,14 @@ function App() {
         {sync.isLoading ? (
           <p>Loading...</p>
         ) : sync.content !== null ? (
-          <TipTap
-            syncExtension={sync.extension}
-            content={sync.content}
-            key={id}
-          />
+          <TipTap syncExtension={sync.extension} content={sync.content} />
         ) : (
           <button
             onClick={() => {
               sync.create("<p>Write something...</p>");
             }}
           >
-            Create document {id}
+            Create document {props.id}
           </button>
         )}
       </div>
