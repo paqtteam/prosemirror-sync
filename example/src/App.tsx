@@ -15,10 +15,10 @@ const defaultExtensions = [
     placeholder: "Write something…",
   }),
 ];
+const schema = getSchema(defaultExtensions);
 
 function App() {
   const id = "1";
-  const schema = getSchema(defaultExtensions);
   const initial = useInitialState(api.example, schema, id);
   const convex = useConvex();
   return (
@@ -73,7 +73,7 @@ function TipTap(props: {
       ...defaultExtensions,
       sync(convex, props.id, {
         syncApi: api.example,
-        schema: getSchema(defaultExtensions),
+        schema,
         initialVersion: props.version,
         clientId: props.clientId,
         restoredSteps: props.steps,
