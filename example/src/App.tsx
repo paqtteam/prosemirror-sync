@@ -15,7 +15,7 @@ function App(props: { id: string }) {
   });
   return (
     <>
-      <h1>Convex Prosemirror Component Example</h1>
+      <h1>Prosemirror + ConvexSync</h1>
       <div className="card">
         {sync.isLoading ? (
           <p>Loading...</p>
