@@ -85,9 +85,10 @@ export function sync(
           clientId: opts.clientId,
         });
         if (result.status === "synced") {
+          // We replay the steps locally to avoid refetching them.
           receiveSteps(
             editor,
-            [...sendable.steps],
+            steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
             steps.map(() => opts.clientId)
           );
           console.debug("Synced", {
