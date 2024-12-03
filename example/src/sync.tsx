@@ -65,7 +65,7 @@ export function sync(
         receiveSteps(
           editor,
           steps.steps.map((step) =>
-            Step.fromJSON(opts.schema, JSON.parse(step))
+            Step.fromJSON(editor.schema, JSON.parse(step))
           ),
           steps.clientIds
         );
@@ -105,7 +105,7 @@ export function sync(
           receiveSteps(
             editor,
             result.steps.map((step) =>
-              Step.fromJSON(opts.schema, JSON.parse(step))
+              Step.fromJSON(editor.schema, JSON.parse(step))
             ),
             result.clientIds
           );
