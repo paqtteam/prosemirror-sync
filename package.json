@@ -1,11 +1,11 @@
 {
-  "name": "@convex-dev/prosemirror",
+  "name": "@convex-dev/prosemirror-sync",
   "description": "A prosemirror collab plugin using a Convex component.",
-  "repository": "github:get-convex/prosemirror",
-  "homepage": "https://github.com/get-convex/prosemirror#readme",
+  "repository": "github:get-convex/prosemirror-sync",
+  "homepage": "https://github.com/get-convex/prosemirror-sync#readme",
   "bugs": {
     "email": "support@convex.dev",
-    "url": "https://github.com/get-convex/prosemirror/issues"
+    "url": "https://github.com/get-convex/prosemirror-sync/issues"
   },
   "version": "0.1.0",
   "license": "Apache-2.0",
@@ -13,7 +13,8 @@
     "convex",
     "component",
     "collab",
-    "prosemirror"
+    "prosemirror",
+    "sync"
   ],
   "type": "module",
   "scripts": {
