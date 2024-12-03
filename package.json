@@ -52,13 +52,13 @@
     "./tiptap": {
       "import": {
         "@convex-dev/component-source": "./src/tiptap/index.ts",
-        "types": "./dist/esm/tiptap.d.ts",
-        "default": "./dist/esm/tiptap.js"
+        "types": "./dist/esm/tiptap/index.d.ts",
+        "default": "./dist/esm/tiptap/index.js"
       },
       "require": {
         "@convex-dev/component-source": "./src/tiptap/index.ts",
-        "types": "./dist/commonjs/tiptap.d.ts",
-        "default": "./dist/commonjs/tiptap.js"
+        "types": "./dist/commonjs/tiptap/index.d.ts",
+        "default": "./dist/commonjs/tiptap/index.js"
       }
     },
     "./convex.config": {
