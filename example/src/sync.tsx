@@ -40,12 +40,12 @@ export function useSync(
       extension: null,
       isLoading: false,
       content: null,
-      create: (content: Content) =>
+      create: (content?: Content) =>
         convex.mutation(opts.syncApi.submitSnapshot, {
           id,
           version: 1,
           content: JSON.stringify(
-            createDocument(content, opts.schema).toJSON()
+            createDocument(content ?? "", opts.schema).toJSON()
           ),
         }),
     } as const;

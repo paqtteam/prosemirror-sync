@@ -1,17 +1,11 @@
 import "./App.css";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
 import { api } from "../convex/_generated/api";
 import { Content, Extension, getSchema } from "@tiptap/core";
 import { useSync } from "./sync";
 
-const defaultExtensions = [
-  StarterKit,
-  Placeholder.configure({
-    placeholder: "Write something…",
-  }),
-];
+const defaultExtensions = [StarterKit];
 const schema = getSchema(defaultExtensions);
 
 function App(props: { id: string }) {
