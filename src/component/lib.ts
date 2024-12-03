@@ -36,12 +36,20 @@ export const getVersion = query({
   args: { id: v.string() },
   returns: v.union(v.null(), v.number()),
   handler: async (ctx, args) => {
-    return ctx.db
+    const latestDelta = await ctx.db
+      .query("deltas")
+      .withIndex("id_version", (q) => q.eq("id", args.id))
+      .order("desc")
+      .first();
+    if (latestDelta) {
+      return latestDelta.version;
+    }
+    const latestSnapshot = await ctx.db
       .query("snapshots")
       .withIndex("id_version", (q) => q.eq("id", args.id))
       .order("desc")
-      .first()
-      .then((s) => s?.version ?? null);
+      .first();
+    return latestSnapshot?.version ?? null;
   },
 });
 
