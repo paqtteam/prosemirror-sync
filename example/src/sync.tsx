@@ -7,6 +7,8 @@ import { Step } from "@tiptap/pm/transform";
 import { useState } from "react";
 import { SyncApi } from "../../src/client";
 
+const log: typeof console.log = console.debug;
+
 export function sync(
   convex: ConvexReactClient,
   id: string,
@@ -18,7 +20,6 @@ export function sync(
     restoredSteps?: Step[];
   }
 ) {
-  console.debug("Initializing sync", { opts });
   let active: boolean = false;
   let pending:
     | { resolve: () => void; reject: () => void; promise: Promise<void> }
@@ -28,7 +29,6 @@ export function sync(
   async function trySync(editor: Editor) {
     const serverVersion = watch?.localQueryResult();
     if (serverVersion === undefined) {
-      console.debug("No server version yet", { watch, editor });
       return;
     }
     if (serverVersion === null) {
@@ -36,9 +36,7 @@ export function sync(
       throw new Error("Syncing a document that doesn't exist server-side");
     }
     if (active) {
-      console.debug("Already syncing");
       if (!pending) {
-        console.debug("Adding a pending sync");
         let resolve = () => {};
         let reject = () => {};
         const promise = new Promise<void>((res, rej) => {
@@ -53,7 +51,7 @@ export function sync(
     try {
       const version = collab.getVersion(editor.state);
       if (serverVersion > version) {
-        console.debug("Updating to server version", {
+        log("Updating to server version", {
           id,
           version,
           serverVersion,
@@ -78,6 +76,7 @@ export function sync(
         const steps = sendable.steps.map((step) =>
           JSON.stringify(step.toJSON())
         );
+        log("Sending steps", { steps, version: sendable.version });
         const result = await convex.mutation(opts.syncApi.submitSteps, {
           id,
           steps,
@@ -91,7 +90,7 @@ export function sync(
             steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
             steps.map(() => opts.clientId)
           );
-          console.debug("Synced", {
+          log("Synced", {
             steps,
             version,
             newVersion: collab.getVersion(editor.state),
@@ -99,10 +98,6 @@ export function sync(
           break;
         }
         if (result.status === "needs-rebase") {
-          console.debug("Rebasing", {
-            steps: result.steps,
-            clientIds: result.clientIds,
-          });
           receiveSteps(
             editor,
             result.steps.map((step) =>
@@ -110,6 +105,10 @@ export function sync(
             ),
             result.clientIds
           );
+          log("Rebased", {
+            steps,
+            newVersion: collab.getVersion(editor.state),
+          });
         }
       }
     } finally {
@@ -126,28 +125,11 @@ export function sync(
     steps: Step[],
     clientIds: (string | number)[]
   ) {
-    const versionBefore = collab.getVersion(editor.state);
-    const docBefore = editor.state.doc.toJSON();
-    console.debug("Receiving steps", {
-      steps: steps.map((step) => JSON.stringify(step.toJSON())),
-      numSteps: steps.length,
-      editable: editor.view.editable,
-      doc: editor.state.doc,
-      content: editor.state.doc.textContent,
-      clientIds,
-      versionBefore,
-      docBefore,
-    });
     editor.view.dispatch(
       collab.receiveTransaction(editor.state, steps, clientIds, {
         mapSelectionBackward: true,
       })
     );
-    const versionAfter = collab.getVersion(editor.state);
-    console.debug("Received steps", {
-      versionBefore,
-      versionAfter,
-    });
   }
 
   let unsubscribe: (() => void) | undefined;
@@ -155,13 +137,12 @@ export function sync(
   return Extension.create({
     name: "convex-sync",
     onDestroy() {
-      console.log("destroying");
+      log("destroying");
       unsubscribe?.();
     },
     onCreate() {
-      console.log("on create", JSON.stringify(this.editor.state.doc.toJSON()));
-      if (opts.restoredSteps) {
-        console.debug("restored steps", opts.restoredSteps);
+      if (opts.restoredSteps?.length) {
+        log("Restored steps", opts.restoredSteps);
         // TODO: verify that restoring steps works
         for (const step of opts.restoredSteps) {
           this.editor.state.tr.step(step);
@@ -169,24 +150,15 @@ export function sync(
       }
       watch = convex.watchQuery(opts.syncApi.getVersion, { id });
       unsubscribe = watch.onUpdate(() => {
-        console.debug("Server version updated", watch!.localQueryResult());
         trySync(this.editor);
       });
       trySync(this.editor);
     },
-    onBeforeCreate() {
-      console.log("before create", this.editor);
-    },
     onUpdate() {
-      console.log("update", this.editor.state.doc.textContent);
       trySync(this.editor);
     },
-    // onTransaction({ editor, transaction }) {
-    //   console.log("transaction", editor.state.doc.textContent);
-    //   trySync(editor);
-    // },
     addProseMirrorPlugins() {
-      console.log("Adding collab plugin", {
+      log("Adding collab plugin", {
         clientID: opts.clientId,
         version: opts.initialVersion,
       });
@@ -243,7 +215,6 @@ export function useInitialState(
     //   }
     //   return result.doc;
     // }, snapshot);
-    console.debug("serverInitial", serverInitial);
     setInitial({
       // content: node.toJSON(),
       content: JSON.parse(serverInitial.content) as Content,
@@ -252,7 +223,6 @@ export function useInitialState(
       clientId: crypto.randomUUID(),
     });
   }
-  console.debug("loading", { serverInitial });
   return {
     loading: true,
   };
