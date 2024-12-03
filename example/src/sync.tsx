@@ -1,20 +1,67 @@
-import { ConvexReactClient, useQuery, Watch } from "convex/react";
+import { ConvexReactClient, useConvex, useQuery, Watch } from "convex/react";
 import { Extension } from "@tiptap/react";
-import { Content, Editor } from "@tiptap/core";
+import { Content, createDocument, Editor } from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
 import { Schema } from "@tiptap/pm/model";
 import { Step } from "@tiptap/pm/transform";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { SyncApi } from "../../src/client";
 
 const log: typeof console.log = console.debug;
+
+export function useSync(
+  id: string,
+  opts: {
+    syncApi: SyncApi;
+    schema: Schema;
+  }
+) {
+  const convex = useConvex();
+  const initial = useInitialState(opts.syncApi, opts.schema, id);
+  const extension = useMemo(() => {
+    if (initial.loading || !initial.content) return null;
+    return sync(convex, id, {
+      syncApi: opts.syncApi,
+      initialVersion: initial.version,
+      clientId: initial.clientId,
+      restoredSteps: initial.steps,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [convex, id, initial.loading, initial.content]);
+  if (initial.loading) {
+    return {
+      extension: null,
+      isLoading: true,
+      content: null,
+    } as const;
+  }
+  if (!initial.content) {
+    return {
+      extension: null,
+      isLoading: false,
+      content: null,
+      create: (content: Content) =>
+        convex.mutation(opts.syncApi.submitSnapshot, {
+          id,
+          version: 1,
+          content: JSON.stringify(
+            createDocument(content, opts.schema).toJSON()
+          ),
+        }),
+    } as const;
+  }
+  return {
+    extension: extension!,
+    isLoading: false,
+    content: initial.content,
+  } as const;
+}
 
 export function sync(
   convex: ConvexReactClient,
   id: string,
   opts: {
     syncApi: SyncApi;
-    schema: Schema;
     initialVersion: number;
     clientId: string | number;
     restoredSteps?: Step[];

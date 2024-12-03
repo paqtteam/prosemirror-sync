@@ -1,13 +1,10 @@
 import "./App.css";
-import { useConvex } from "convex/react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import { api } from "../convex/_generated/api";
-import { Content, getSchema } from "@tiptap/core";
-import { Step } from "prosemirror-transform";
-import { useMemo } from "react";
-import { sync, useInitialState } from "./sync";
+import { Content, Extension, getSchema } from "@tiptap/core";
+import { useSync } from "./sync";
 
 const defaultExtensions = [
   StarterKit,
@@ -18,73 +15,41 @@ const defaultExtensions = [
 const schema = getSchema(defaultExtensions);
 
 function App() {
-  const id = "1";
-  const initial = useInitialState(api.example, schema, id);
-  const convex = useConvex();
+  const id = "3";
+  const sync = useSync(id, {
+    syncApi: api.example,
+    schema,
+  });
   return (
     <>
       <h1>Convex Prosemirror Component Example</h1>
       <div className="card">
-        {initial.loading ? (
+        {sync.isLoading ? (
           <p>Loading...</p>
-        ) : initial.content ? (
-          <TipTap {...initial} id={id} />
+        ) : sync.content !== null ? (
+          <TipTap
+            syncExtension={sync.extension}
+            content={sync.content}
+            key={id}
+          />
         ) : (
           <button
             onClick={() => {
-              convex.mutation(api.example.submitSnapshot, {
-                id,
-                version: 1,
-                content: JSON.stringify({
-                  type: "doc",
-                  content: [
-                    {
-                      type: "paragraph",
-                      content: [{ type: "text", text: "Hi" }],
-                    },
-                  ],
-                }),
-              });
+              sync.create("<p>Write something...</p>");
             }}
           >
             Create document {id}
           </button>
         )}
-        <p>
-          See <code>example/convex/example.ts</code> for all the ways to use
-          this component
-        </p>
       </div>
     </>
   );
 }
 
-function TipTap(props: {
-  id: string;
-  content: Content;
-  version: number;
-  steps: Step[];
-  clientId: string | number;
-}) {
-  const convex = useConvex();
-  // TODO: Is memoization necessary here? Just persistent extension?
-  const extensions = useMemo(
-    () => [
-      ...defaultExtensions,
-      sync(convex, props.id, {
-        syncApi: api.example,
-        schema,
-        initialVersion: props.version,
-        clientId: props.clientId,
-        restoredSteps: props.steps,
-      }),
-    ],
-    [convex, props.id, props.version, props.clientId, props.steps]
-  );
+function TipTap(props: { syncExtension: Extension; content: Content }) {
   const editor = useEditor({
-    extensions,
+    extensions: [...defaultExtensions, props.syncExtension],
     content: props.content,
-    // content: "<p>Hi</p>",
   });
 
   return (
