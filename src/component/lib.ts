@@ -114,7 +114,6 @@ export const get = query({
     v.object({
       content: v.string(),
       steps: v.array(v.string()),
-      clientIds: v.array(vClientId),
       version: v.number(),
     })
   ),
@@ -131,14 +130,13 @@ export const get = query({
         content: null,
       };
     }
-    const [steps, clientIds] =
+    const [steps] =
       snapshot.version === args.version || args.ignoreSteps
         ? [[], []]
         : await fetchSteps(ctx, args.id, snapshot.version, args.version);
     return {
       content: snapshot.content,
       steps,
-      clientIds,
       version: snapshot.version + steps.length,
     };
   },

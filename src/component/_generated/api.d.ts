@@ -33,12 +33,7 @@ export type Mounts = {
       "public",
       { id: string; ignoreSteps?: boolean; version?: number },
       | { content: null }
-      | {
-          clientIds: Array<string | number>;
-          content: string;
-          steps: Array<string>;
-          version: number;
-        }
+      | { content: string; steps: Array<string>; version: number }
     >;
     getSteps: FunctionReference<
       "query",
