@@ -1,8 +1,8 @@
-import { ConvexReactClient, useConvex, Watch } from "convex/react";
+import { ConvexReactClient, useConvex, useQuery, Watch } from "convex/react";
 import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
 import { Step } from "@tiptap/pm/transform";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { SyncApi } from "../client";
 
 const log: typeof console.log = console.debug;
@@ -215,38 +215,32 @@ export function useInitialState(
   const [initial, setInitial] = useState<InitialState | undefined>(() =>
     getCachedState(id, cacheKeyPrefix)
   );
-  const [loading, setLoading] = useState(!initial);
-  const convex = useConvex();
-  useEffect(() => {
-    if (initial) return;
-    convex
-      .query(syncApi.get, {
-        id,
-        ignoreSteps: true,
-      })
-      .then((serverInitial) => {
-        if (serverInitial.content !== null) {
-          log("Got initial state from server", {
-            initialContent: serverInitial.content,
-            initialVersion: serverInitial.version,
-          });
-          setInitial({
-            initialContent: JSON.parse(serverInitial.content) as Content,
-            initialVersion: serverInitial.version,
-          });
+  let data = initial;
+  const serverInitial = useQuery(
+    syncApi.get,
+    initial
+      ? "skip"
+      : {
+          id,
+          ignoreSteps: true,
         }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error getting initial state", error);
-        setLoading(false);
-        setTimeout(() => setLoading(true), 1000); // Retry in 1 second
-      });
-  }, [initial]);
-  if (initial) {
+  );
+  const [loading, setLoading] = useState(!initial);
+  if (loading && serverInitial) {
+    setLoading(false);
+  }
+  if (!initial && serverInitial && serverInitial.content !== null) {
+    data = {
+      initialContent: JSON.parse(serverInitial.content) as Content,
+      initialVersion: serverInitial.version,
+    };
+    setInitial(data);
+  }
+
+  if (data) {
     return {
       loading: false,
-      ...initial,
+      ...data,
     };
   }
   if (!loading) {
