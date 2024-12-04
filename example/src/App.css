@@ -35,6 +35,21 @@
 
 .card {
   padding: 2em;
+  max-width: 800px;
+  margin: 0 auto;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.ProseMirror {
+  padding: 1em;
+  min-height: 200px;
+  text-align: left;
+  outline: none;
+}
+
+.ProseMirror p {
+  margin: 0.5em 0;
 }
 
 .read-the-docs {
