@@ -8,10 +8,13 @@ const address = import.meta.env.VITE_CONVEX_URL;
 const convex = new ConvexReactClient(address);
 
 // Fetch the id from the URL hash, or make a new one
-const id = window.location.hash.slice(1) || crypto.randomUUID();
-if (window.location.hash !== `#${id}`) {
-  window.location.hash = `#${id}`;
+if (window.location.hash.length <= 1) {
+  window.location.hash = `#${crypto.randomUUID()}`;
 }
+window.addEventListener("hashchange", () => {
+  window.location.reload();
+});
+const id = window.location.hash.slice(1);
 
 createRoot(document.getElementById("root")!).render(
   <ConvexProvider client={convex}>

@@ -34,7 +34,7 @@ function App(props: { id: string }) {
               });
             }}
           >
-            Create document {props.id}
+            Create document (id: {props.id})
           </button>
         )}
       </div>
