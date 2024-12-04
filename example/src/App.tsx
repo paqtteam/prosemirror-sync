@@ -2,29 +2,36 @@ import "./App.css";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../convex/_generated/api";
-import { Content, Extension, getSchema } from "@tiptap/core";
+import { Content, Extension } from "@tiptap/core";
 import { useSync } from "@convex-dev/prosemirror-sync/tiptap";
 
 const defaultExtensions = [StarterKit];
-const schema = getSchema(defaultExtensions);
 
 function App(props: { id: string }) {
-  const sync = useSync(props.id, {
-    syncApi: api.example,
-    schema,
-  });
+  const sync = useSync(api.example, props.id);
   return (
     <>
       <h1>Prosemirror + ConvexSync</h1>
       <div className="card">
         {sync.isLoading ? (
           <p>Loading...</p>
-        ) : sync.content !== null ? (
-          <TipTap syncExtension={sync.extension} content={sync.content} />
+        ) : sync.initialContent !== null ? (
+          <TipTap
+            syncExtension={sync.extension}
+            initialContent={sync.initialContent}
+          />
         ) : (
           <button
             onClick={() => {
-              sync.create("<p>Write something...</p>");
+              sync.create({
+                type: "doc",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [{ type: "text", text: "Write something..." }],
+                  },
+                ],
+              });
             }}
           >
             Create document {props.id}
@@ -35,10 +42,10 @@ function App(props: { id: string }) {
   );
 }
 
-function TipTap(props: { syncExtension: Extension; content: Content }) {
+function TipTap(props: { syncExtension: Extension; initialContent: Content }) {
   const editor = useEditor({
     extensions: [...defaultExtensions, props.syncExtension],
-    content: props.content,
+    content: props.initialContent,
   });
 
   return (

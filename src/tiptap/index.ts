@@ -1,70 +1,53 @@
-import { ConvexReactClient, useConvex, useQuery, Watch } from "convex/react";
-import { Content, createDocument, Editor, Extension } from "@tiptap/core";
+import { ConvexReactClient, useConvex, Watch } from "convex/react";
+import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
-import { Schema } from "@tiptap/pm/model";
 import { Step } from "@tiptap/pm/transform";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SyncApi } from "../client";
 
 const log: typeof console.log = console.debug;
 
-export function useSync(
-  id: string,
-  opts: {
-    syncApi: SyncApi;
-    schema: Schema;
-  }
-) {
+export function useSync(syncApi: SyncApi, id: string) {
   const convex = useConvex();
-  const initial = useInitialState(opts.syncApi, opts.schema, id);
+  const initial = useInitialState(syncApi, id);
   const extension = useMemo(() => {
-    if (initial.loading || !initial.content) return null;
-    return sync(convex, id, {
-      syncApi: opts.syncApi,
-      initialVersion: initial.version,
-      clientId: initial.clientId,
-      restoredSteps: initial.steps,
-    });
+    const { loading, ...initialState } = initial;
+    if (loading || !initialState.initialContent) return null;
+    return sync(convex, id, syncApi, initialState);
     // // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [convex, id, initial.loading, initial.content]);
+  }, [convex, id, initial.loading, initial.initialContent]);
   if (initial.loading) {
     return {
       extension: null,
       isLoading: true,
-      content: null,
+      initialContent: null,
     } as const;
   }
-  if (!initial.content) {
+  if (!initial.initialContent) {
     return {
       extension: null,
       isLoading: false,
-      content: null,
-      create: (content?: Content) =>
-        convex.mutation(opts.syncApi.submitSnapshot, {
+      initialContent: null,
+      create: (initial: JSONContent) =>
+        convex.mutation(syncApi.submitSnapshot, {
           id,
           version: 1,
-          content: JSON.stringify(
-            createDocument(content ?? "", opts.schema).toJSON()
-          ),
+          content: JSON.stringify(initial),
         }),
     } as const;
   }
   return {
     extension: extension!,
     isLoading: false,
-    content: initial.content,
+    initialContent: initial.initialContent,
   } as const;
 }
 
 export function sync(
   convex: ConvexReactClient,
   id: string,
-  opts: {
-    syncApi: SyncApi;
-    initialVersion: number;
-    clientId: string | number;
-    restoredSteps?: Step[];
-  }
+  syncApi: SyncApi,
+  initialState: InitialState
 ) {
   let active: boolean = false;
   let pending:
@@ -102,7 +85,7 @@ export function sync(
           version,
           serverVersion,
         });
-        const steps = await convex.query(opts.syncApi.getSteps, {
+        const steps = await convex.query(syncApi.getSteps, {
           id,
           version,
         });
@@ -123,18 +106,18 @@ export function sync(
           JSON.stringify(step.toJSON())
         );
         log("Sending steps", { steps, version: sendable.version });
-        const result = await convex.mutation(opts.syncApi.submitSteps, {
+        const result = await convex.mutation(syncApi.submitSteps, {
           id,
           steps,
           version: sendable.version,
-          clientId: opts.clientId,
+          clientId: sendable.clientID,
         });
         if (result.status === "synced") {
           // We replay the steps locally to avoid refetching them.
           receiveSteps(
             editor,
             steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
-            steps.map(() => opts.clientId)
+            steps.map(() => sendable.clientID)
           );
           log("Synced", {
             steps,
@@ -187,14 +170,16 @@ export function sync(
       unsubscribe?.();
     },
     onCreate() {
-      if (opts.restoredSteps?.length) {
-        log("Restored steps", opts.restoredSteps);
-        // TODO: verify that restoring steps works
-        for (const step of opts.restoredSteps) {
-          this.editor.state.tr.step(step);
+      if (initialState.restoredSteps?.length) {
+        // TODO: verify that restoring local steps works
+        log("Restoring local steps", initialState.restoredSteps);
+        const tr = this.editor.state.tr;
+        for (const step of initialState.restoredSteps) {
+          tr.step(Step.fromJSON(this.editor.schema, step));
         }
+        // this.editor.view.dispatch(tr);
       }
-      watch = convex.watchQuery(opts.syncApi.getVersion, { id });
+      watch = convex.watchQuery(syncApi.getVersion, { id });
       unsubscribe = watch.onUpdate(() => {
         void trySync(this.editor);
       });
@@ -205,90 +190,92 @@ export function sync(
     },
     addProseMirrorPlugins() {
       log("Adding collab plugin", {
-        clientID: opts.clientId,
-        version: opts.initialVersion,
+        version: initialState.initialVersion,
       });
       return [
         collab.collab({
-          clientID: opts.clientId,
-          version: opts.initialVersion,
+          version: initialState.initialVersion,
         }),
       ];
     },
   });
 }
 
+type InitialState = {
+  initialContent: Content;
+  initialVersion: number;
+  restoredSteps?: object[];
+};
+
 export function useInitialState(
   syncApi: SyncApi,
-  schema: Schema,
   id: string,
   cacheKeyPrefix?: string
 ) {
-  const [initial, setInitial] = useState(() =>
-    getCachedState(schema, id, cacheKeyPrefix)
+  const [initial, setInitial] = useState<InitialState | undefined>(() =>
+    getCachedState(id, cacheKeyPrefix)
   );
-  const serverInitial = useQuery(
-    syncApi.get,
-    initial ? "skip" : { id, ignoreSteps: true }
-  );
+  const [loading, setLoading] = useState(!initial);
+  const convex = useConvex();
+  useEffect(() => {
+    if (initial) return;
+    convex
+      .query(syncApi.get, {
+        id,
+        ignoreSteps: true,
+      })
+      .then((serverInitial) => {
+        if (serverInitial.content !== null) {
+          log("Got initial state from server", {
+            initialContent: serverInitial.content,
+            initialVersion: serverInitial.version,
+          });
+          setInitial({
+            initialContent: JSON.parse(serverInitial.content) as Content,
+            initialVersion: serverInitial.version,
+          });
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error getting initial state", error);
+        setLoading(false);
+        setTimeout(() => setLoading(true), 1000); // Retry in 1 second
+      });
+  }, [initial]);
   if (initial) {
     return {
       loading: false,
       ...initial,
     };
   }
-  if (serverInitial && serverInitial.content === null) {
+  if (!loading) {
     // We couldn't find it locally or on the server.
     // We could dynamically create a new document here,
     // not sure if that's generally the right pattern (vs. explicit creation).
     return {
       loading: false,
-      content: null,
+      initialContent: null,
     };
-  }
-  if (serverInitial && serverInitial.content !== null) {
-    // TODO: Handle steps gracefully
-    // const snapshot = schema.nodeFromJSON(JSON.parse(serverInitial.content));
-    // const steps = serverInitial.steps.map((step) =>
-    //   Step.fromJSON(schema, JSON.parse(step))
-    // );
-    // const node = steps.reduce<Node>((node, step) => {
-    //   const result = step.apply(node);
-    //   if (!result.doc) {
-    //     throw new Error(
-    //       result.failed ?? `Failed to apply step: ${JSON.stringify(step)}`
-    //     );
-    //   }
-    //   return result.doc;
-    // }, snapshot);
-    setInitial({
-      // content: node.toJSON(),
-      content: JSON.parse(serverInitial.content) as Content,
-      version: serverInitial.version,
-      steps: [],
-      clientId: crypto.randomUUID(),
-    });
   }
   return {
     loading: true,
   };
 }
 
-function getCachedState(schema: Schema, id: string, cacheKeyPrefix?: string) {
+function getCachedState(
+  id: string,
+  cacheKeyPrefix?: string
+): InitialState | undefined {
   // TODO: Verify that this works
   const cacheKey = `${cacheKeyPrefix ?? "convex-sync"}-${id}`;
   const cache = sessionStorage.getItem(cacheKey);
   if (cache) {
-    const { content, version, steps, clientId } = JSON.parse(cache);
+    const { content, version, steps } = JSON.parse(cache);
     return {
-      content: JSON.parse(content) as Content,
-      // The server-persisted version of the content
-      version: Number(version),
-      // The user's local unconfirmedsteps
-      steps:
-        steps?.map((step: string) => Step.fromJSON(schema, JSON.parse(step))) ??
-        [],
-      clientId: clientId as string | number,
+      initialContent: content as Content,
+      initialVersion: Number(version),
+      restoredSteps: (steps ?? []) as object[],
     };
   }
 }

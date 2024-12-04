@@ -132,12 +132,12 @@ export const get = query({
     }
     const [steps] =
       snapshot.version === args.version || args.ignoreSteps
-        ? [[], []]
+        ? [[]]
         : await fetchSteps(ctx, args.id, snapshot.version, args.version);
     return {
       content: snapshot.content,
-      steps,
       version: snapshot.version + steps.length,
+      steps,
     };
   },
 });
