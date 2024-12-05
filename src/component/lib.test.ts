@@ -96,13 +96,12 @@ describe("prosemirror lib", () => {
   test("get handles missing snapshot", async () => {
     const t = convexTest(schema, modules);
     const id = crypto.randomUUID();
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 2,
     });
     expect(content).toEqual(null);
     expect(steps).toEqual(undefined);
-    expect(clientIds).toEqual(undefined);
     expect(version).toEqual(undefined);
     const ignoringSteps = await t.query(api.lib.get, {
       id,
@@ -111,7 +110,6 @@ describe("prosemirror lib", () => {
     });
     expect(ignoringSteps.content).toEqual(null);
     expect(ignoringSteps.steps).toEqual(undefined);
-    expect(ignoringSteps.clientIds).toEqual(undefined);
     expect(ignoringSteps.version).toEqual(undefined);
   });
   test("get works with only snapshot", async () => {
@@ -124,13 +122,12 @@ describe("prosemirror lib", () => {
         content: "content",
       });
     });
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 0,
     });
     expect(content).toEqual("content");
     expect(steps).toEqual([]);
-    expect(clientIds).toEqual([]);
     expect(version).toEqual(0);
   });
   test("get ignores steps when asked", async () => {
@@ -150,14 +147,13 @@ describe("prosemirror lib", () => {
         steps: ["1", "2"],
       });
     });
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 2,
       ignoreSteps: true,
     });
     expect(content).toEqual("content");
     expect(steps).toEqual([]);
-    expect(clientIds).toEqual([]);
     expect(version).toEqual(0);
   });
   test("get skips steps before snapshot", async () => {
@@ -177,13 +173,12 @@ describe("prosemirror lib", () => {
         steps: ["1", "2"],
       });
     });
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 2,
     });
     expect(content).toEqual("content");
     expect(steps).toEqual(["2"]);
-    expect(clientIds).toEqual([clientId]);
     expect(version).toEqual(2);
   });
   test("get skips steps before snapshot & beyond version", async () => {
@@ -215,13 +210,12 @@ describe("prosemirror lib", () => {
         steps: ["3", "4"],
       });
     });
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 3,
     });
     expect(content).toEqual("new content");
     expect(steps).toEqual(["2", "3"]);
-    expect(clientIds).toEqual([clientId, clientId2]);
     expect(version).toEqual(3);
   });
   test("create, submit, then get works", async () => {
@@ -238,13 +232,12 @@ describe("prosemirror lib", () => {
       version: 0,
       steps: ["a", "b"],
     });
-    const { content, steps, clientIds, version } = await t.query(api.lib.get, {
+    const { content, steps, version } = await t.query(api.lib.get, {
       id,
       version: 2,
     });
     expect(content).toEqual("content");
     expect(steps).toEqual(["a", "b"]);
-    expect(clientIds).toEqual(["client1", "client1"]);
     expect(version).toEqual(2);
   });
   test("submitSnapshot same content is idempotent", async () => {
