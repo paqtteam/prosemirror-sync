@@ -1,11 +1,27 @@
 import "./App.css";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import Placeholder from "@tiptap/extension-placeholder";
+import Typography from "@tiptap/extension-typography";
+import Underline from "@tiptap/extension-underline";
 import { api } from "../convex/_generated/api";
 import { Content, Extension } from "@tiptap/core";
 import { useSync } from "@convex-dev/prosemirror-sync/tiptap";
 
-const defaultExtensions = [StarterKit];
+const defaultExtensions = [
+  StarterKit,
+  Link,
+  TaskItem.configure({
+    nested: true,
+  }),
+  TaskList,
+  Placeholder,
+  Typography,
+  Underline,
+];
 
 function App(props: { id: string }) {
   const sync = useSync(api.example, props.id);

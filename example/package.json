@@ -11,7 +11,12 @@
   },
   "dependencies": {
     "@convex-dev/prosemirror-sync": "file:..",
+    "@tiptap/extension-link": "^2.10.3",
     "@tiptap/extension-placeholder": "^2.10.3",
+    "@tiptap/extension-task-item": "^2.10.3",
+    "@tiptap/extension-task-list": "^2.10.3",
+    "@tiptap/extension-typography": "^2.10.3",
+    "@tiptap/extension-underline": "^2.10.3",
     "@tiptap/react": "^2.10.3",
     "@tiptap/starter-kit": "^2.10.3",
     "convex": "file:../node_modules/convex",
