@@ -49,6 +49,7 @@ Future features likely won't make the v1 cut but could be added later:
 
 Missing features that aren't currently planned:
 
+- Supporting documents larger than 1 Megabyte.
 - Offline support that syncs changes between browser tabs or peer-to-peer.
 - Syncing Yjs documents instead of ProseMirror steps. That would be done by a
   different Yjs-specific component.
