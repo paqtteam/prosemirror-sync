@@ -19,6 +19,7 @@ Coming soon:
       up the latest server-synced version of the document to the server. This
       allows new clients to avoid loading all the intermediate steps, without
       needing to read & write the full document on every delta.
+  - [ ] Deletion API for old snapshots, steps, documents.
 - [ ] Offline editing support: cache the document and local changes in
       `sessionStorage` and sync when back online (only for active browser tab).
   - [ ] Also save snapshots (but not local edits) to `localStorage` so new tabs
@@ -34,6 +35,8 @@ Future features likely won't make the v1 cut but could be added later:
 
 - Configuration for debouncing snapshot generation & syncing deltas (to reduce
   bandwidth and function calls).
+- Option to write the concrete value each time a delta is submitted.
+- Pluggable storage for ReactNative, assuming single-session.
 - Vacuuming controls for old deltas & snapshots.
 - Implementing it as a ProseMirror plugin instead of a TipTap extension, so raw
   ProseMirror usecases can also use it.
@@ -55,6 +58,12 @@ Missing features that aren't currently planned:
   different Yjs-specific component.
 - Syncing presence (e.g. showing other users' names and cursor in the UI). This
   is another thing a Yjs-oriented ProseMirror component could tackle.
+- Callback to confirm rebases and handle failures in the client (during sync).
+- Optimistic local document creation that will upload on the next sync.
+  This would be a separate function that stores the document locally and marks
+  it as unsynced, the allows `useSync` to sync the document when the user
+  comes back online. Unclear whether other created documents should also sync,
+  and whether that should happen from some sync provider, or via useSync.
 
 ## Running the example locally
 
