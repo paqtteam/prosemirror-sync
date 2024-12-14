@@ -7,13 +7,19 @@ import { SyncApi } from "../client";
 
 const log: typeof console.log = console.debug;
 
-export function useSync(syncApi: SyncApi, id: string) {
+export function useSync(
+  syncApi: SyncApi,
+  id: string,
+  opts?: {
+    onSyncError?: (error: Error) => void;
+  }
+) {
   const convex = useConvex();
   const initial = useInitialState(syncApi, id);
   const extension = useMemo(() => {
     const { loading, ...initialState } = initial;
     if (loading || !initialState.initialContent) return null;
-    return sync(convex, id, syncApi, initialState);
+    return sync(convex, id, syncApi, initialState, opts?.onSyncError);
     // // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convex, id, initial.loading, initial.initialContent]);
   if (initial.loading) {
@@ -47,7 +53,8 @@ export function sync(
   convex: ConvexReactClient,
   id: string,
   syncApi: SyncApi,
-  initialState: InitialState
+  initialState: InitialState,
+  onSyncError?: (error: Error) => void
 ) {
   let active: boolean = false;
   let pending:
@@ -139,6 +146,12 @@ export function sync(
             newVersion: collab.getVersion(editor.state),
           });
         }
+      }
+    } catch (error) {
+      if (onSyncError) {
+        onSyncError(error as Error);
+      } else {
+        throw error;
       }
     } finally {
       active = false;
