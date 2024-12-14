@@ -2,6 +2,9 @@ import {
   ApiFromModules,
   Expand,
   FunctionReference,
+  GenericDataModel,
+  GenericMutationCtx,
+  GenericQueryCtx,
   mutationGeneric,
   queryGeneric,
 } from "convex/server";
@@ -15,22 +18,80 @@ export type SyncApi = ApiFromModules<{
 
 export class Prosemirror {
   constructor(public component: UseApi<Mounts>) {}
-  syncApi() {
+  syncApi<DataModel extends GenericDataModel>(opts?: {
+    checkRead?: (
+      ctx: GenericQueryCtx<DataModel>,
+      id: string
+    ) => void | Promise<void>;
+    checkWrite?: (
+      ctx: GenericMutationCtx<DataModel>,
+      id: string
+    ) => void | Promise<void>;
+    onSnapshot?: (
+      ctx: GenericMutationCtx<DataModel>,
+      id: string,
+      snapshot: string
+    ) => void | Promise<void>;
+  }) {
     return {
+      getSnapshot: queryGeneric({
+        args: {
+          id: v.string(),
+          version: v.optional(v.number()),
+        },
+        returns: v.union(
+          v.object({
+            content: v.null(),
+          }),
+          v.object({
+            content: v.string(),
+            version: v.number(),
+          })
+        ),
+        handler: async (ctx, args) => {
+          if (opts?.checkRead) {
+            await opts.checkRead(ctx, args.id);
+          }
+          return ctx.runQuery(this.component.lib.getSnapshot, args);
+        },
+      }),
       submitSnapshot: mutationGeneric({
         args: {
           id: v.string(),
           version: v.number(),
           content: v.string(),
         },
+        returns: v.null(),
         handler: async (ctx, args) => {
-          return ctx.runMutation(this.component.lib.submitSnapshot, args);
+          if (opts?.checkWrite) {
+            await opts.checkWrite(ctx, args.id);
+          }
+          await ctx.runMutation(this.component.lib.submitSnapshot, args);
+          if (opts?.onSnapshot) {
+            await opts.onSnapshot(ctx, args.id, args.content);
+          }
         },
       }),
-      getVersion: queryGeneric({
+      latestVersion: queryGeneric({
         args: { id: v.string() },
+        returns: v.union(v.null(), v.number()),
         handler: async (ctx, args) => {
-          return ctx.runQuery(this.component.lib.getVersion, args);
+          if (opts?.checkRead) {
+            await opts.checkRead(ctx, args.id);
+          }
+          return ctx.runQuery(this.component.lib.latestVersion, args);
+        },
+      }),
+      getSteps: queryGeneric({
+        args: {
+          id: v.string(),
+          version: v.number(),
+        },
+        handler: async (ctx, args) => {
+          if (opts?.checkRead) {
+            await opts.checkRead(ctx, args.id);
+          }
+          return ctx.runQuery(this.component.lib.getSteps, args);
         },
       }),
       submitSteps: mutationGeneric({
@@ -41,26 +102,10 @@ export class Prosemirror {
           steps: v.array(v.string()),
         },
         handler: async (ctx, args) => {
+          if (opts?.checkWrite) {
+            await opts.checkWrite(ctx, args.id);
+          }
           return ctx.runMutation(this.component.lib.submitSteps, args);
-        },
-      }),
-      get: queryGeneric({
-        args: {
-          id: v.string(),
-          version: v.optional(v.number()),
-          ignoreSteps: v.optional(v.boolean()),
-        },
-        handler: async (ctx, args) => {
-          return ctx.runQuery(this.component.lib.get, args);
-        },
-      }),
-      getSteps: queryGeneric({
-        args: {
-          id: v.string(),
-          version: v.number(),
-        },
-        handler: async (ctx, args) => {
-          return ctx.runQuery(this.component.lib.getSteps, args);
         },
       }),
     };

@@ -10,11 +10,11 @@ Features:
 - Safely merges changes between clients via OT rebasing.
 - Simple React hook to fetch the initial document and keep it in sync via a
   TipTap extension.
+- Server-side entrypoints for authorizing reads & writes, and responding to
+  new snapshots.
 
 Coming soon:
 
-- [ ] Server-side entrypoints for authorizing reads & writes, and responding to
-      new snapshots.
 - [ ] Client-driven snapshotting / compaction. On some debounced interval, send
       up the latest server-synced version of the document to the server. This
       allows new clients to avoid loading all the intermediate steps, without

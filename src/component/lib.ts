@@ -32,7 +32,7 @@ export const submitSnapshot = mutation({
   },
 });
 
-export const getVersion = query({
+export const latestVersion = query({
   args: { id: v.string() },
   returns: v.union(v.null(), v.number()),
   handler: async (ctx, args) => {
@@ -101,19 +101,14 @@ function stepsAndClientIds(deltas: Doc<"deltas">[]) {
   return [steps, clientIds] as const;
 }
 
-export const get = query({
-  args: {
-    id: v.string(),
-    version: v.optional(v.number()),
-    ignoreSteps: v.optional(v.boolean()),
-  },
+export const getSnapshot = query({
+  args: { id: v.string(), version: v.optional(v.number()) },
   returns: v.union(
     v.object({
       content: v.null(),
     }),
     v.object({
       content: v.string(),
-      steps: v.array(v.string()),
       version: v.number(),
     })
   ),
@@ -130,14 +125,9 @@ export const get = query({
         content: null,
       };
     }
-    const [steps] =
-      snapshot.version === args.version || args.ignoreSteps
-        ? [[]]
-        : await fetchSteps(ctx, args.id, snapshot.version, args.version);
     return {
       content: snapshot.content,
-      version: snapshot.version + steps.length,
-      steps,
+      version: snapshot.version,
     };
   },
 });

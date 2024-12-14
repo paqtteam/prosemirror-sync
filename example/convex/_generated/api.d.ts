@@ -40,12 +40,11 @@ export declare const internal: FilterApi<
 export declare const components: {
   prosemirror: {
     lib: {
-      get: FunctionReference<
+      getSnapshot: FunctionReference<
         "query",
         "internal",
-        { id: string; ignoreSteps?: boolean; version?: number },
-        | { content: null }
-        | { content: string; steps: Array<string>; version: number }
+        { id: string; version?: number },
+        { content: null } | { content: string; version: number }
       >;
       getSteps: FunctionReference<
         "query",
@@ -57,7 +56,7 @@ export declare const components: {
           version: number;
         }
       >;
-      getVersion: FunctionReference<
+      latestVersion: FunctionReference<
         "query",
         "internal",
         { id: string },

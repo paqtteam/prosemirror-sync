@@ -179,7 +179,7 @@ export function sync(
         }
         // this.editor.view.dispatch(tr);
       }
-      watch = convex.watchQuery(syncApi.getVersion, { id });
+      watch = convex.watchQuery(syncApi.latestVersion, { id });
       unsubscribe = watch.onUpdate(() => {
         void trySync(this.editor);
       });
@@ -217,13 +217,8 @@ export function useInitialState(
   );
   let data = initial;
   const serverInitial = useQuery(
-    syncApi.get,
-    initial
-      ? "skip"
-      : {
-          id,
-          ignoreSteps: true,
-        }
+    syncApi.getSnapshot,
+    initial ? "skip" : { id }
   );
   const [loading, setLoading] = useState(!initial);
   if (loading && serverInitial) {

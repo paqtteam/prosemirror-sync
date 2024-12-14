@@ -28,12 +28,11 @@ declare const fullApi: ApiFromModules<{
 }>;
 export type Mounts = {
   lib: {
-    get: FunctionReference<
+    getSnapshot: FunctionReference<
       "query",
       "public",
-      { id: string; ignoreSteps?: boolean; version?: number },
-      | { content: null }
-      | { content: string; steps: Array<string>; version: number }
+      { id: string; version?: number },
+      { content: null } | { content: string; version: number }
     >;
     getSteps: FunctionReference<
       "query",
@@ -45,7 +44,7 @@ export type Mounts = {
         version: number;
       }
     >;
-    getVersion: FunctionReference<
+    latestVersion: FunctionReference<
       "query",
       "public",
       { id: string },

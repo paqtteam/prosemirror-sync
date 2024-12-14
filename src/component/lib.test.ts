@@ -96,20 +96,17 @@ describe("prosemirror lib", () => {
   test("get handles missing snapshot", async () => {
     const t = convexTest(schema, modules);
     const id = crypto.randomUUID();
-    const { content, steps, version } = await t.query(api.lib.get, {
+    const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
       version: 2,
     });
     expect(content).toEqual(null);
-    expect(steps).toEqual(undefined);
     expect(version).toEqual(undefined);
-    const ignoringSteps = await t.query(api.lib.get, {
+    const ignoringSteps = await t.query(api.lib.getSnapshot, {
       id,
       version: 2,
-      ignoreSteps: true,
     });
     expect(ignoringSteps.content).toEqual(null);
-    expect(ignoringSteps.steps).toEqual(undefined);
     expect(ignoringSteps.version).toEqual(undefined);
   });
   test("get works with only snapshot", async () => {
@@ -122,15 +119,14 @@ describe("prosemirror lib", () => {
         content: "content",
       });
     });
-    const { content, steps, version } = await t.query(api.lib.get, {
+    const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
       version: 0,
     });
     expect(content).toEqual("content");
-    expect(steps).toEqual([]);
     expect(version).toEqual(0);
   });
-  test("get ignores steps when asked", async () => {
+  test("get ignores steps version", async () => {
     const t = convexTest(schema, modules);
     const id = crypto.randomUUID();
     const clientId = "client1";
@@ -147,16 +143,14 @@ describe("prosemirror lib", () => {
         steps: ["1", "2"],
       });
     });
-    const { content, steps, version } = await t.query(api.lib.get, {
+    const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
       version: 2,
-      ignoreSteps: true,
     });
     expect(content).toEqual("content");
-    expect(steps).toEqual([]);
     expect(version).toEqual(0);
   });
-  test("get skips steps before snapshot", async () => {
+  test("getSnapshot gets latest snapshot", async () => {
     const t = convexTest(schema, modules);
     const id = crypto.randomUUID();
     const clientId = "client1";
@@ -172,51 +166,18 @@ describe("prosemirror lib", () => {
         clientId,
         steps: ["1", "2"],
       });
+      await ctx.db.insert("snapshots", {
+        id,
+        version: 2,
+        content: "content2",
+      });
     });
-    const { content, steps, version } = await t.query(api.lib.get, {
+    const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
       version: 2,
     });
-    expect(content).toEqual("content");
-    expect(steps).toEqual(["2"]);
+    expect(content).toEqual("content2");
     expect(version).toEqual(2);
-  });
-  test("get skips steps before snapshot & beyond version", async () => {
-    const t = convexTest(schema, modules);
-    const id = crypto.randomUUID();
-    const clientId = "client1";
-    const clientId2 = "client2";
-    await t.run(async (ctx) => {
-      await ctx.db.insert("snapshots", {
-        id,
-        version: 0,
-        content: "old content",
-      });
-      await ctx.db.insert("deltas", {
-        id,
-        version: 2,
-        clientId,
-        steps: ["1", "2"],
-      });
-      await ctx.db.insert("snapshots", {
-        id,
-        version: 1,
-        content: "new content",
-      });
-      await ctx.db.insert("deltas", {
-        id,
-        version: 4,
-        clientId: clientId2,
-        steps: ["3", "4"],
-      });
-    });
-    const { content, steps, version } = await t.query(api.lib.get, {
-      id,
-      version: 3,
-    });
-    expect(content).toEqual("new content");
-    expect(steps).toEqual(["2", "3"]);
-    expect(version).toEqual(3);
   });
   test("create, submit, then get works", async () => {
     const t = convexTest(schema, modules);
@@ -232,13 +193,23 @@ describe("prosemirror lib", () => {
       version: 0,
       steps: ["a", "b"],
     });
-    const { content, steps, version } = await t.query(api.lib.get, {
+    const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
       version: 2,
     });
     expect(content).toEqual("content");
-    expect(steps).toEqual(["a", "b"]);
-    expect(version).toEqual(2);
+    expect(version).toEqual(0);
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 2,
+      content: "content2",
+    });
+    const snapshot2 = await t.query(api.lib.getSnapshot, {
+      id,
+      version: 2,
+    });
+    expect(snapshot2.content).toEqual("content2");
+    expect(snapshot2.version).toEqual(2);
   });
   test("submitSnapshot same content is idempotent", async () => {
     const t = convexTest(schema, modules);
