@@ -24,9 +24,8 @@ Coming soon:
       `sessionStorage` and sync when back online (only for active browser tab).
   - [ ] Also save snapshots (but not local edits) to `localStorage` so new tabs
         can see and edit documents offline (but won't see edits from other tabs
-        until they're back online). A future implementation could sync CRDTs
-        instead of OT to support this.
-- [ ] Better readme:
+        until they're back online).
+- [ ] Better readme & comments:
   - [ ] Intro: example code snippets
   - [ ] Why should you use this component?
   - [ ] Links to Stack post & other resources.
@@ -37,8 +36,10 @@ Future features likely won't make the v1 cut but could be added later:
   bandwidth and function calls).
 - Option to write the concrete value each time a delta is submitted.
 - Pluggable storage for ReactNative, assuming single-session.
+- Warning when closing tab with unsynced changes (works by default?).
 - Vacuuming controls for old deltas & snapshots.
-- Implementing it as a ProseMirror plugin instead of a TipTap extension, so raw
+- Add a BlockNote convenience wrapper.
+- Convert it to a ProseMirror plugin instead of a TipTap extension, so raw
   ProseMirror usecases can also use it.
 - Handling edge cases, such as old clients with local changes on top of an older
   version of the document where the steps necessary for them to rebase their
@@ -64,6 +65,12 @@ Missing features that aren't currently planned:
   it as unsynced, the allows `useSync` to sync the document when the user
   comes back online. Unclear whether other created documents should also sync,
   and whether that should happen from some sync provider, or via useSync.
+- Optimization to sync a snapshot instead of many deltas when an old client
+  reconnects and doesn't have local changes.
+- Handling multiple AsyncStorage instances that are restored from the same
+  cloud backup, leading to multiple clients with the same clientID. For now,
+  we'll assume that AsyncStorage is only used by one client at a time.
+  A strategy here would be to
 
 ## Running the example locally
 
@@ -118,15 +125,63 @@ export default app;
 
 ## Usage
 
+To use the component, you expose the API in a file in your `convex/` folder,
+and use the `useSync` hook in your React components, passing in a reference
+to the API you defined.
+For this example, we'll create the API in `convex/example.ts`.
+
 ```ts
+// convex/example.ts
 import { components } from "./_generated/api";
 import { Prosemirror } from "@convex-dev/prosemirror-sync";
 
-const prosemirror = new Prosemirror(components.prosemirror, {
-  ...options,
+const prosemirror = new Prosemirror(components.prosemirror);
+export const {
+  getSnapshot,
+  submitSnapshot,
+  latestVersion,
+  getSteps,
+  submitSteps,
+} = prosemirror.syncApi({
+  // ...
 });
 ```
 
-See more example usage in [example.ts](./example/convex/example.ts).
+In your React components, you can use the `useSync` hook to fetch the initial
+document and keep it in sync via a TipTap extension.
+**Note**: This requires a [`ConvexProvider`](https://docs.convex.dev/quickstart/react#:~:text=Connect%20the%20app%20to%20your%20backend)
+to be in the component tree.
+
+```tsx
+// src/MyComponent.tsx
+import { useSync } from "@convex-dev/prosemirror-sync";
+import { EditorContent, EditorProvider } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+
+const extensions = [StarterKit];
+const EMPTY_DOC: JSONContent = {
+  type: "doc",
+  content: [{ type: "text", text: "Write something..." }],
+};
+
+function MyComponent() {
+  const sync = useSync(api.example, "some-id");
+  return sync.isLoading ? (
+    <p>Loading...</p>
+  ) : sync.initialContent !== null ? (
+    <EditorProvider
+      content={sync.initialContent}
+      extensions={[...extensions, sync.extension]}
+    >
+      <EditorContent editor={null} />
+    </EditorProvider>
+  ) : (
+    <button onClick={() => sync.create(EMPTY_DOC)}>Create document</button>
+  );
+}
+```
+
+See a working example in [example.ts](./example/convex/example.ts) and
+[App.tsx](./example/src/App.tsx).
 
 <!-- END: Include on https://convex.dev/components -->
