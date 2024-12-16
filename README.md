@@ -15,14 +15,13 @@ Features:
 - Server-side entrypoints for authorizing reads & writes, and responding to
   new snapshots.
 - Create a new document from the client. See [below](#creating-a-new-document).
+- Debounced snapshotting / compaction. This allows new clients to avoid loading
+  all the intermediate steps, without needing to read & write the full document
+  on every delta.
 
 Coming soon:
 
-- [ ] Client-driven snapshotting / compaction. On some debounced interval, send
-      up the latest server-synced version of the document to the server. This
-      allows new clients to avoid loading all the intermediate steps, without
-      needing to read & write the full document on every delta.
-  - [ ] Deletion API for old snapshots, steps, documents.
+- [ ] Deletion API for old snapshots, steps, documents.
 - [ ] Offline editing support: cache the document and local changes in
       `sessionStorage` and sync when back online (only for active browser tab).
   - [ ] Also save snapshots (but not local edits) to `localStorage` so new tabs

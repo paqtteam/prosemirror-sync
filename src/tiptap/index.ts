@@ -13,6 +13,7 @@ import { SyncApi } from "../client";
 
 // How many steps we will attempt to sync in one request.
 const MAX_STEPS_SYNC = 1000;
+const SNAPSHOT_DEBOUNCE_MS = 5000;
 const log: typeof console.log = console.debug;
 
 export function useSync(
@@ -101,6 +102,18 @@ export function syncExtension(
   initialState: InitialState,
   onSyncError?: (error: Error) => void
 ) {
+  let snapshotTimer: NodeJS.Timeout | undefined;
+  const trySubmitSnapshot = (version: number, content: string) => {
+    if (snapshotTimer) {
+      clearTimeout(snapshotTimer);
+    }
+    snapshotTimer = setTimeout(() => {
+      void convex
+        .mutation(syncApi.submitSnapshot, { id, version, content })
+        .catch(onSyncError);
+    }, SNAPSHOT_DEBOUNCE_MS);
+  };
+
   let active: boolean = false;
   let pending:
     | { resolve: () => void; reject: () => void; promise: Promise<void> }
@@ -127,7 +140,16 @@ export function syncExtension(
     active = true;
 
     try {
-      await doSync(editor, convex, syncApi, id, serverVersion, initialState)
+      if (
+        await doSync(editor, convex, syncApi, id, serverVersion, initialState)
+      ) {
+        const version = collab.getVersion(editor.state);
+        const content = JSON.stringify(editor.state.doc.toJSON());
+        if (collab.sendableSteps(editor.state)) {
+          throw new Error("Synced but still have sendable steps");
+        }
+        trySubmitSnapshot(version, content);
+      }
     } catch (error) {
       if (onSyncError) {
         onSyncError(error as Error);
