@@ -13,7 +13,7 @@ import { SyncApi } from "../client";
 
 // How many steps we will attempt to sync in one request.
 const MAX_STEPS_SYNC = 1000;
-const SNAPSHOT_DEBOUNCE_MS = 5000;
+const SNAPSHOT_DEBOUNCE_MS = 1000;
 const log: typeof console.log = console.debug;
 
 type UseSyncOptions = {
@@ -123,6 +123,10 @@ export function syncExtension(
     const serverVersion = watch?.localQueryResult();
     if (serverVersion === undefined) {
       return;
+    }
+    if (serverVersion && serverVersion > collab.getVersion(editor.state)) {
+      clearTimeout(snapshotTimer);
+      snapshotTimer = undefined;
     }
     if (active) {
       if (!pending) {
