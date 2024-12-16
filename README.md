@@ -2,6 +2,8 @@
 
 [![npm version](https://badge.fury.io/js/@convex-dev%2Fprosemirror-sync.svg)](https://badge.fury.io/js/@convex-dev%2Fprosemirror-sync)
 
+<!-- START: Include on https://convex.dev/components -->
+
 This is a [Convex Component](https://convex.dev/components) that syncs a
 [ProseMirror](https://prosemirror.net/) document between clients.
 
@@ -67,26 +69,6 @@ Missing features that aren't currently planned:
   cloud backup, leading to multiple clients with the same clientID. For now,
   we'll assume that AsyncStorage is only used by one client at a time.
   A strategy here would be to
-
-## Running the example locally
-
-In one terminal, run:
-
-```sh
-npm install
-cd example
-npm install
-# Involves signing into Convex if necessary and deploying to a Convex.
-npm run dev
-```
-
-And in another terminal, run:
-
-```sh
-npm run dev:frontend
-```
-
-<!-- START: Include on https://convex.dev/components -->
 
 Found a bug? Feature request? [File it here](https://github.com/get-convex/prosemirror-sync/issues).
 
@@ -196,3 +178,21 @@ You can create a new document from the client by calling `sync.create(content)`.
 - Note: if you don't open that document (`useSync`) while online, it won't sync.
 
 <!-- END: Include on https://convex.dev/components -->
+
+## Running the example locally
+
+In one terminal, run:
+
+```sh
+npm install
+cd example
+npm install
+# Involves signing into Convex if necessary and deploying to a Convex.
+npm run dev
+```
+
+And in another terminal, run:
+
+```sh
+npm run dev:frontend
+```
