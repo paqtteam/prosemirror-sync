@@ -4,20 +4,24 @@
 
 <!-- START: Include on https://convex.dev/components -->
 
+Add a collaborative editor that syncs to the cloud.
+
+Configure your editor features, add this component to your Convex backend, and
+use the `useSync` React hook.
+
 This is a [Convex Component](https://convex.dev/components) that syncs a
-[ProseMirror](https://prosemirror.net/) document between clients.
+[ProseMirror](https://prosemirror.net/) document between clients via a
+[TipTap](https://tiptap.dev/) extension.
 
 Features:
 
-- Safely merges changes between clients via OT rebasing.
+- Safely merges changes between clients via operational transformations (OT).
 - Simple React hook to fetch the initial document and keep it in sync via a
   TipTap extension.
 - Server-side entrypoints for authorizing reads & writes, and responding to
   new snapshots.
-- Create a new document from the client. See [below](#creating-a-new-document).
-- Debounced snapshotting / compaction. This allows new clients to avoid loading
-  all the intermediate steps, without needing to read & write the full document
-  on every delta.
+- Create a new document, online or offline.
+- Debounced snapshots allow new clients to avoid reading the full history.
 - Deletion API for old snapshots & steps.
 
 Coming soon:
