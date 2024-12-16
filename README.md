@@ -136,10 +136,7 @@ import { EditorContent, EditorProvider } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
 const extensions = [StarterKit];
-const EMPTY_DOC: JSONContent = {
-  type: "doc",
-  content: [{ type: "text", text: "Write something..." }],
-};
+const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
 function MyComponent() {
   const sync = useSync(api.example, "some-id");
