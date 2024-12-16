@@ -11,6 +11,8 @@ import { Step } from "@tiptap/pm/transform";
 import { useCallback, useMemo, useState } from "react";
 import { SyncApi } from "../client";
 
+// How many steps we will attempt to sync in one request.
+const MAX_STEPS_SYNC = 1000;
 const log: typeof console.log = console.debug;
 
 export function useSync(
@@ -166,9 +168,9 @@ export function sync(
         if (!sendable) {
           break;
         }
-        const steps = sendable.steps.map((step) =>
-          JSON.stringify(step.toJSON())
-        );
+        const steps = sendable.steps
+          .slice(0, MAX_STEPS_SYNC)
+          .map((step) => JSON.stringify(step.toJSON()));
         log("Sending steps", { steps, version: sendable.version });
         const result = await convex.mutation(syncApi.submitSteps, {
           id,
@@ -188,7 +190,7 @@ export function sync(
             version,
             newVersion: collab.getVersion(editor.state),
           });
-          break;
+          continue;
         }
         if (result.status === "needs-rebase") {
           receiveSteps(
