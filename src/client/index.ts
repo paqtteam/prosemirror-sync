@@ -30,7 +30,8 @@ export class Prosemirror {
     onSnapshot?: (
       ctx: GenericMutationCtx<DataModel>,
       id: string,
-      snapshot: string
+      snapshot: string,
+      version: number
     ) => void | Promise<void>;
   }) {
     return {
@@ -66,10 +67,10 @@ export class Prosemirror {
           if (opts?.checkWrite) {
             await opts.checkWrite(ctx, args.id);
           }
-          await ctx.runMutation(this.component.lib.submitSnapshot, args);
           if (opts?.onSnapshot) {
-            await opts.onSnapshot(ctx, args.id, args.content);
+            await opts.onSnapshot(ctx, args.id, args.content, args.version);
           }
+          await ctx.runMutation(this.component.lib.submitSnapshot, args);
         },
       }),
       latestVersion: queryGeneric({
