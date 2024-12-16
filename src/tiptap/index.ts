@@ -1,8 +1,14 @@
-import { ConvexReactClient, useConvex, useQuery, Watch } from "convex/react";
+import {
+  ConvexReactClient,
+  useConvex,
+  useMutation,
+  useQuery,
+  Watch,
+} from "convex/react";
 import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
 import { Step } from "@tiptap/pm/transform";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { SyncApi } from "../client";
 
 const log: typeof console.log = console.debug;
@@ -22,11 +28,53 @@ export function useSync(
     return sync(convex, id, syncApi, initialState, opts?.onSyncError);
     // // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convex, id, initial.loading, initial.initialContent]);
+  const submitSnapshot = useMutation(
+    syncApi.submitSnapshot
+  ).withOptimisticUpdate((localQueryStore, args) => {
+    // This update will allow the useInitialState to respond immediately to
+    // creating documents, as if it came from the server.
+    const existing = localQueryStore.getQuery(syncApi.getSnapshot, { id });
+    if (!existing?.content) {
+      localQueryStore.setQuery(
+        syncApi.getSnapshot,
+        { id },
+        {
+          version: args.version,
+          content: args.content,
+        }
+      );
+    }
+    const version = localQueryStore.getQuery(syncApi.latestVersion, { id });
+    if (version === null) {
+      localQueryStore.setQuery(syncApi.latestVersion, { id }, args.version);
+    }
+  });
+  const create = useCallback(
+    async (content: JSONContent) => {
+      log("Creating new document", { id });
+      await submitSnapshot({
+        id,
+        version: 1,
+        content: JSON.stringify(content),
+      });
+    },
+    [convex, id]
+  );
   if (initial.loading) {
     return {
       extension: null,
       isLoading: true,
       initialContent: null,
+      /**
+       * Create the document without waiting to hear from the server.
+       * Warning: Only call this if you just created the document id.
+       * It's safer to wait until loading is false.
+       * It's also best practice to pass in the same initial content everywhere,
+       * so if two clients create the same document id, they'll both end up
+       * with the same initial content. Otherwise the second client will
+       * throw an exception on the snapshot creation.
+       */
+      create,
     } as const;
   }
   if (!initial.initialContent) {
@@ -34,12 +82,7 @@ export function useSync(
       extension: null,
       isLoading: false,
       initialContent: null,
-      create: (initial: JSONContent) =>
-        convex.mutation(syncApi.submitSnapshot, {
-          id,
-          version: 1,
-          content: JSON.stringify(initial),
-        }),
+      create,
     } as const;
   }
   return {
@@ -67,10 +110,6 @@ export function sync(
     if (serverVersion === undefined) {
       return;
     }
-    if (serverVersion === null) {
-      // TODO: Handle deletion gracefully
-      throw new Error("Syncing a document that doesn't exist server-side");
-    }
     if (active) {
       if (!pending) {
         let resolve = () => {};
@@ -84,9 +123,27 @@ export function sync(
       return pending.promise;
     }
     active = true;
+
+    if (serverVersion === null) {
+      if (initialState.initialVersion <= 1) {
+        // This is a new document, so we can create it on the server.
+        // Note: this should only happen if the initial version is loaded from
+        // a local cache. Creating a new document on the client will set the
+        // initial version to 1 optimistically.
+        log("Syncing new document", { id });
+        await convex.mutation(syncApi.submitSnapshot, {
+          id,
+          version: initialState.initialVersion,
+          content: JSON.stringify(initialState.initialContent),
+        });
+      } else {
+        // TODO: Handle deletion gracefully
+        throw new Error("Syncing a document that doesn't exist server-side");
+      }
+    }
     try {
       const version = collab.getVersion(editor.state);
-      if (serverVersion > version) {
+      if (serverVersion !== null && serverVersion > version) {
         log("Updating to server version", {
           id,
           version,

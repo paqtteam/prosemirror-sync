@@ -12,6 +12,7 @@ Features:
   TipTap extension.
 - Server-side entrypoints for authorizing reads & writes, and responding to
   new snapshots.
+- Create a new document from the client. See [below](#creating-a-new-document).
 
 Coming soon:
 
@@ -60,11 +61,6 @@ Missing features that aren't currently planned:
 - Syncing presence (e.g. showing other users' names and cursor in the UI). This
   is another thing a Yjs-oriented ProseMirror component could tackle.
 - Callback to confirm rebases and handle failures in the client (during sync).
-- Optimistic local document creation that will upload on the next sync.
-  This would be a separate function that stores the document locally and marks
-  it as unsynced, the allows `useSync` to sync the document when the user
-  comes back online. Unclear whether other created documents should also sync,
-  and whether that should happen from some sync provider, or via useSync.
 - Optimization to sync a snapshot instead of many deltas when an old client
   reconnects and doesn't have local changes.
 - Handling multiple AsyncStorage instances that are restored from the same
@@ -183,5 +179,20 @@ function MyComponent() {
 
 See a working example in [example.ts](./example/convex/example.ts) and
 [App.tsx](./example/src/App.tsx).
+
+## Notes
+
+### Creating a new document
+
+You can create a new document from the client by calling `sync.create(content)`.
+
+- While it's safest to wait until the server confirms the document doesn't exist
+  yet (`!sync.isLoading`), you can choose to call it while offline with a newly
+  created ID to start editing a new document before you reconnect.
+- When the client next connects and syncs the document, it will submit the
+  initial version and all local changes as steps.
+- If multiple clients create the same document, it will fail if they submit
+  different initial content.
+- Note: if you don't open that document (`useSync`) while online, it won't sync.
 
 <!-- END: Include on https://convex.dev/components -->
