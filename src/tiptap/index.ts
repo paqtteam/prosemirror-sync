@@ -27,7 +27,7 @@ export function useSync(
   const extension = useMemo(() => {
     const { loading, ...initialState } = initial;
     if (loading || !initialState.initialContent) return null;
-    return sync(convex, id, syncApi, initialState, opts?.onSyncError);
+    return syncExtension(convex, id, syncApi, initialState, opts?.onSyncError);
     // // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convex, id, initial.loading, initial.initialContent]);
   const submitSnapshot = useMutation(
@@ -94,7 +94,7 @@ export function useSync(
   } as const;
 }
 
-export function sync(
+export function syncExtension(
   convex: ConvexReactClient,
   id: string,
   syncApi: SyncApi,
@@ -127,85 +127,7 @@ export function sync(
     active = true;
 
     try {
-      if (serverVersion === null) {
-        if (initialState.initialVersion <= 1) {
-          // This is a new document, so we can create it on the server.
-          // Note: this should only happen if the initial version is loaded from
-          // a local cache. Creating a new document on the client will set the
-          // initial version to 1 optimistically.
-          log("Syncing new document", { id });
-          await convex.mutation(syncApi.submitSnapshot, {
-            id,
-            version: initialState.initialVersion,
-            content: JSON.stringify(initialState.initialContent),
-          });
-        } else {
-          // TODO: Handle deletion gracefully
-          throw new Error("Syncing a document that doesn't exist server-side");
-        }
-      }
-      const version = collab.getVersion(editor.state);
-      if (serverVersion !== null && serverVersion > version) {
-        log("Updating to server version", {
-          id,
-          version,
-          serverVersion,
-        });
-        const steps = await convex.query(syncApi.getSteps, {
-          id,
-          version,
-        });
-        receiveSteps(
-          editor,
-          steps.steps.map((step) =>
-            Step.fromJSON(editor.schema, JSON.parse(step))
-          ),
-          steps.clientIds
-        );
-      }
-      while (true) {
-        const sendable = collab.sendableSteps(editor.state);
-        if (!sendable) {
-          break;
-        }
-        const steps = sendable.steps
-          .slice(0, MAX_STEPS_SYNC)
-          .map((step) => JSON.stringify(step.toJSON()));
-        log("Sending steps", { steps, version: sendable.version });
-        const result = await convex.mutation(syncApi.submitSteps, {
-          id,
-          steps,
-          version: sendable.version,
-          clientId: sendable.clientID,
-        });
-        if (result.status === "synced") {
-          // We replay the steps locally to avoid refetching them.
-          receiveSteps(
-            editor,
-            steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
-            steps.map(() => sendable.clientID)
-          );
-          log("Synced", {
-            steps,
-            version,
-            newVersion: collab.getVersion(editor.state),
-          });
-          continue;
-        }
-        if (result.status === "needs-rebase") {
-          receiveSteps(
-            editor,
-            result.steps.map((step) =>
-              Step.fromJSON(editor.schema, JSON.parse(step))
-            ),
-            result.clientIds
-          );
-          log("Rebased", {
-            steps,
-            newVersion: collab.getVersion(editor.state),
-          });
-        }
-      }
+      await doSync(editor, convex, syncApi, id, serverVersion, initialState)
     } catch (error) {
       if (onSyncError) {
         onSyncError(error as Error);
@@ -220,17 +142,6 @@ export function sync(
         trySync(editor).then(resolve, reject);
       }
     }
-  }
-  function receiveSteps(
-    editor: Editor,
-    steps: Step[],
-    clientIds: (string | number)[]
-  ) {
-    editor.view.dispatch(
-      collab.receiveTransaction(editor.state, steps, clientIds, {
-        mapSelectionBackward: true,
-      })
-    );
   }
 
   let unsubscribe: (() => void) | undefined;
@@ -271,6 +182,108 @@ export function sync(
       ];
     },
   });
+}
+
+async function doSync(
+  editor: Editor,
+  convex: ConvexReactClient,
+  syncApi: SyncApi,
+  id: string,
+  serverVersion: number | null,
+  initialState: InitialState
+) {
+  if (serverVersion === null) {
+    if (initialState.initialVersion <= 1) {
+      // This is a new document, so we can create it on the server.
+      // Note: this should only happen if the initial version is loaded from
+      // a local cache. Creating a new document on the client will set the
+      // initial version to 1 optimistically.
+      log("Syncing new document", { id });
+      await convex.mutation(syncApi.submitSnapshot, {
+        id,
+        version: initialState.initialVersion,
+        content: JSON.stringify(initialState.initialContent),
+      });
+    } else {
+      // TODO: Handle deletion gracefully
+      throw new Error("Syncing a document that doesn't exist server-side");
+    }
+  }
+  const version = collab.getVersion(editor.state);
+  if (serverVersion !== null && serverVersion > version) {
+    log("Updating to server version", {
+      id,
+      version,
+      serverVersion,
+    });
+    const steps = await convex.query(syncApi.getSteps, {
+      id,
+      version,
+    });
+    receiveSteps(
+      editor,
+      steps.steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
+      steps.clientIds
+    );
+  }
+  let anyChanges = false;
+  while (true) {
+    const sendable = collab.sendableSteps(editor.state);
+    if (!sendable) {
+      break;
+    }
+    const steps = sendable.steps
+      .slice(0, MAX_STEPS_SYNC)
+      .map((step) => JSON.stringify(step.toJSON()));
+    log("Sending steps", { steps, version: sendable.version });
+    const result = await convex.mutation(syncApi.submitSteps, {
+      id,
+      steps,
+      version: sendable.version,
+      clientId: sendable.clientID,
+    });
+    if (result.status === "synced") {
+      anyChanges = true;
+      // We replay the steps locally to avoid refetching them.
+      receiveSteps(
+        editor,
+        steps.map((step) => Step.fromJSON(editor.schema, JSON.parse(step))),
+        steps.map(() => sendable.clientID)
+      );
+      log("Synced", {
+        steps,
+        version,
+        newVersion: collab.getVersion(editor.state),
+      });
+      continue;
+    }
+    if (result.status === "needs-rebase") {
+      receiveSteps(
+        editor,
+        result.steps.map((step) =>
+          Step.fromJSON(editor.schema, JSON.parse(step))
+        ),
+        result.clientIds
+      );
+      log("Rebased", {
+        steps,
+        newVersion: collab.getVersion(editor.state),
+      });
+    }
+  }
+  return anyChanges;
+}
+
+function receiveSteps(
+  editor: Editor,
+  steps: Step[],
+  clientIds: (string | number)[]
+) {
+  editor.view.dispatch(
+    collab.receiveTransaction(editor.state, steps, clientIds, {
+      mapSelectionBackward: true,
+    })
+  );
 }
 
 type InitialState = {
