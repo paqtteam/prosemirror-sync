@@ -34,8 +34,7 @@ Coming soon:
 
 Future features likely won't make the v1 cut but could be added later:
 
-- Configuration for debouncing snapshot generation & syncing deltas (to reduce
-  bandwidth and function calls).
+- Configuration for debouncing syncing steps (to reduce function calls).
 - Option to write the concrete value each time a delta is submitted.
 - Pluggable storage for ReactNative, assuming single-session.
 - Warning when closing tab with unsynced changes (works by default?).

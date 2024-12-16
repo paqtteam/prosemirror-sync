@@ -16,19 +16,18 @@ const MAX_STEPS_SYNC = 1000;
 const SNAPSHOT_DEBOUNCE_MS = 5000;
 const log: typeof console.log = console.debug;
 
-export function useSync(
-  syncApi: SyncApi,
-  id: string,
-  opts?: {
-    onSyncError?: (error: Error) => void;
-  }
-) {
+type UseSyncOptions = {
+  onSyncError?: (error: Error) => void;
+  snapshotDebounceMs?: number;
+};
+
+export function useSync(syncApi: SyncApi, id: string, opts?: UseSyncOptions) {
   const convex = useConvex();
   const initial = useInitialState(syncApi, id);
   const extension = useMemo(() => {
     const { loading, ...initialState } = initial;
     if (loading || !initialState.initialContent) return null;
-    return syncExtension(convex, id, syncApi, initialState, opts?.onSyncError);
+    return syncExtension(convex, id, syncApi, initialState, opts);
     // // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convex, id, initial.loading, initial.initialContent]);
   const submitSnapshot = useMutation(
@@ -100,7 +99,7 @@ export function syncExtension(
   id: string,
   syncApi: SyncApi,
   initialState: InitialState,
-  onSyncError?: (error: Error) => void
+  opts?: UseSyncOptions
 ) {
   let snapshotTimer: NodeJS.Timeout | undefined;
   const trySubmitSnapshot = (version: number, content: string) => {
@@ -110,8 +109,8 @@ export function syncExtension(
     snapshotTimer = setTimeout(() => {
       void convex
         .mutation(syncApi.submitSnapshot, { id, version, content })
-        .catch(onSyncError);
-    }, SNAPSHOT_DEBOUNCE_MS);
+        .catch(opts?.onSyncError);
+    }, opts?.snapshotDebounceMs ?? SNAPSHOT_DEBOUNCE_MS);
   };
 
   let active: boolean = false;
@@ -151,8 +150,8 @@ export function syncExtension(
         trySubmitSnapshot(version, content);
       }
     } catch (error) {
-      if (onSyncError) {
-        onSyncError(error as Error);
+      if (opts?.onSyncError) {
+        opts.onSyncError(error as Error);
       } else {
         throw error;
       }
