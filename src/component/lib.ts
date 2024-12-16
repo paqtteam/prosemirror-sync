@@ -2,8 +2,10 @@ import { v } from "convex/values";
 import { mutation, query, QueryCtx } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
 import { vClientId } from "./schema";
+import { api } from "./_generated/api";
 
 const MAX_DELTA_FETCH = 1000;
+const MAX_SNAPSHOT_FETCH = 10;
 
 export const submitSnapshot = mutation({
   args: { id: v.string(), version: v.number(), content: v.string() },
@@ -206,5 +208,105 @@ export const getSteps = query({
   handler: async (ctx, args) => {
     const [steps, clientIds] = await fetchSteps(ctx, args.id, args.version);
     return { steps, clientIds, version: args.version + steps.length };
+  },
+});
+
+/**
+ * Delete snapshots in the given range, not including the bounds.
+ * To clean up old snapshots, call this with the current version as the
+ * beforeVersion and the first version (1) as the afterVersion.
+ */
+export const deleteSnapshots = mutation({
+  args: {
+    id: v.string(),
+    afterVersion: v.optional(v.number()),
+    beforeVersion: v.optional(v.number()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const versions = await ctx.db
+      .query("snapshots")
+      .withIndex("id_version", (q) => {
+        const eq = q.eq("id", args.id);
+        const after =
+          args.afterVersion !== undefined
+            ? eq.gt("version", args.afterVersion)
+            : eq;
+        const before =
+          args.beforeVersion !== undefined
+            ? after.lt("version", args.beforeVersion)
+            : after;
+        return before;
+      })
+      .take(MAX_SNAPSHOT_FETCH);
+    await Promise.all(versions.map((doc) => ctx.db.delete(doc._id)));
+    if (versions.length === MAX_SNAPSHOT_FETCH) {
+      await ctx.scheduler.runAfter(0, api.lib.deleteSnapshots, {
+        id: args.id,
+        beforeVersion: args.beforeVersion,
+        afterVersion: versions[versions.length - 1].version,
+      });
+    }
+  },
+});
+
+/**
+ * Delete steps before some timestamp.
+ * To clean up old steps, call this with a date in the past for beforeTs.
+ * By default it will ensure that all steps are older than the latest snapshot.
+ */
+export const deleteSteps = mutation({
+  args: {
+    id: v.string(),
+    afterVersion: v.optional(v.number()),
+    beforeTs: v.number(),
+    deleteNewerThanLatestSnapshot: v.optional(v.boolean()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    let beforeTs = args.beforeTs;
+    if (!args.deleteNewerThanLatestSnapshot) {
+      const latestSnapshot = await ctx.db
+        .query("snapshots")
+        .withIndex("id_version", (q) => q.eq("id", args.id))
+        .order("desc")
+        .first();
+      if (latestSnapshot) {
+        beforeTs = Math.min(beforeTs, latestSnapshot._creationTime);
+      }
+    }
+    const deltas = (
+      await ctx.db
+        .query("deltas")
+        .withIndex("id_version", (q) =>
+          q.eq("id", args.id).gt("version", args.afterVersion ?? -Infinity)
+        )
+        .take(MAX_DELTA_FETCH)
+    ).filter((doc) => doc._creationTime < beforeTs);
+    await Promise.all(deltas.map((doc) => ctx.db.delete(doc._id)));
+    if (deltas.length === MAX_DELTA_FETCH) {
+      await ctx.scheduler.runAfter(0, api.lib.deleteSteps, {
+        id: args.id,
+        beforeTs,
+        // We already checked that the timestamp is before
+        deleteNewerThanLatestSnapshot: true,
+      });
+    }
+  },
+});
+
+/**
+ * Delete a document and all its snapshots & steps.
+ */
+export const deleteDocument = mutation({
+  args: { id: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await ctx.runMutation(api.lib.deleteSnapshots, { id: args.id });
+    await ctx.scheduler.runAfter(0, api.lib.deleteSteps, {
+      id: args.id,
+      beforeTs: Infinity,
+      deleteNewerThanLatestSnapshot: true,
+    });
   },
 });

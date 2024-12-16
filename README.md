@@ -18,10 +18,10 @@ Features:
 - Debounced snapshotting / compaction. This allows new clients to avoid loading
   all the intermediate steps, without needing to read & write the full document
   on every delta.
+- Deletion API for old snapshots & steps.
 
 Coming soon:
 
-- [ ] Deletion API for old snapshots, steps, documents.
 - [ ] Offline editing support: cache the document and local changes in
       `sessionStorage` and sync when back online (only for active browser tab).
   - [ ] Also save snapshots (but not local edits) to `localStorage` so new tabs

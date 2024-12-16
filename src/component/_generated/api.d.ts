@@ -28,6 +28,29 @@ declare const fullApi: ApiFromModules<{
 }>;
 export type Mounts = {
   lib: {
+    deleteDocument: FunctionReference<
+      "mutation",
+      "public",
+      { id: string },
+      null
+    >;
+    deleteSnapshots: FunctionReference<
+      "mutation",
+      "public",
+      { afterVersion?: number; beforeVersion?: number; id: string },
+      null
+    >;
+    deleteSteps: FunctionReference<
+      "mutation",
+      "public",
+      {
+        afterVersion?: number;
+        beforeTs: number;
+        deleteNewerThanLatestSnapshot?: boolean;
+        id: string;
+      },
+      null
+    >;
     getSnapshot: FunctionReference<
       "query",
       "public",
