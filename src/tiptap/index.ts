@@ -126,24 +126,24 @@ export function sync(
     }
     active = true;
 
-    if (serverVersion === null) {
-      if (initialState.initialVersion <= 1) {
-        // This is a new document, so we can create it on the server.
-        // Note: this should only happen if the initial version is loaded from
-        // a local cache. Creating a new document on the client will set the
-        // initial version to 1 optimistically.
-        log("Syncing new document", { id });
-        await convex.mutation(syncApi.submitSnapshot, {
-          id,
-          version: initialState.initialVersion,
-          content: JSON.stringify(initialState.initialContent),
-        });
-      } else {
-        // TODO: Handle deletion gracefully
-        throw new Error("Syncing a document that doesn't exist server-side");
-      }
-    }
     try {
+      if (serverVersion === null) {
+        if (initialState.initialVersion <= 1) {
+          // This is a new document, so we can create it on the server.
+          // Note: this should only happen if the initial version is loaded from
+          // a local cache. Creating a new document on the client will set the
+          // initial version to 1 optimistically.
+          log("Syncing new document", { id });
+          await convex.mutation(syncApi.submitSnapshot, {
+            id,
+            version: initialState.initialVersion,
+            content: JSON.stringify(initialState.initialContent),
+          });
+        } else {
+          // TODO: Handle deletion gracefully
+          throw new Error("Syncing a document that doesn't exist server-side");
+        }
+      }
       const version = collab.getVersion(editor.state);
       if (serverVersion !== null && serverVersion > version) {
         log("Updating to server version", {
