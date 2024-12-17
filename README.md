@@ -155,12 +155,10 @@ to be in the component tree.
 
 ```tsx
 // src/MyComponent.tsx
-import { useTipTapSync } from "@convex-dev/prosemirror-sync";
+import { useTipTapSync } from "@convex-dev/prosemirror-sync/tiptap";
 import { EditorContent, EditorProvider } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-
-const extensions = [StarterKit];
-const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
+import { api } from "../convex/_generated/api";
 
 function MyComponent() {
   const sync = useTipTapSync(api.example, "some-id");
@@ -169,12 +167,14 @@ function MyComponent() {
   ) : sync.initialContent !== null ? (
     <EditorProvider
       content={sync.initialContent}
-      extensions={[...extensions, sync.extension]}
+      extensions={[StarterKit, sync.extension]}
     >
       <EditorContent editor={null} />
     </EditorProvider>
   ) : (
-    <button onClick={() => sync.create(EMPTY_DOC)}>Create document</button>
+    <button onClick={() => sync.create({ type: "doc", content: [] })}>
+      Create document
+    </button>
   );
 }
 ```
