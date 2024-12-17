@@ -38,7 +38,7 @@ export declare const internal: FilterApi<
 >;
 
 export declare const components: {
-  prosemirror: {
+  prosemirrorSync: {
     lib: {
       deleteDocument: FunctionReference<
         "mutation",

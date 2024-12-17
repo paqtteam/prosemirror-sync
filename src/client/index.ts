@@ -13,7 +13,7 @@ import { Mounts } from "../component/_generated/api";
 import { vClientId } from "../component/schema";
 
 export type SyncApi = ApiFromModules<{
-  sync: ReturnType<Prosemirror["syncApi"]>;
+  sync: ReturnType<ProsemirrorSync["syncApi"]>;
 }>["sync"];
 
 // e.g. `ctx` from a Convex mutation or action.
@@ -21,7 +21,7 @@ export type RunMutationCtx = {
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
 };
 
-export class Prosemirror<Id extends string = string> {
+export class ProsemirrorSync<Id extends string = string> {
   constructor(public component: UseApi<Mounts>) {}
   /**
    * Create a new document with the given ID and content.

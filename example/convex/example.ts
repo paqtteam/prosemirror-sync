@@ -1,14 +1,14 @@
 import { components } from "./_generated/api";
-import { Prosemirror } from "@convex-dev/prosemirror-sync";
+import { ProsemirrorSync } from "@convex-dev/prosemirror-sync";
 
-const prosemirror = new Prosemirror(components.prosemirror);
+const prosemirrorSync = new ProsemirrorSync(components.prosemirrorSync);
 export const {
   getSnapshot,
   submitSnapshot,
   latestVersion,
   getSteps,
   submitSteps,
-} = prosemirror.syncApi({
+} = prosemirrorSync.syncApi({
   checkRead(ctx, id) {
     // const user = await userFromAuth(ctx);
     // ...validate that the user can read this document

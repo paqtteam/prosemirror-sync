@@ -115,10 +115,10 @@ Create a `convex.config.ts` file in your app's `convex/` folder and install the 
 ```ts
 // convex/convex.config.ts
 import { defineApp } from "convex/server";
-import prosemirror from "@convex-dev/prosemirror-sync/convex.config";
+import prosemirrorSync from "@convex-dev/prosemirror-sync/convex.config";
 
 const app = defineApp();
-app.use(prosemirror);
+app.use(prosemirrorSync);
 
 export default app;
 ```
@@ -133,16 +133,16 @@ the API you defined. For this example, we'll create the API in
 ```ts
 // convex/example.ts
 import { components } from "./_generated/api";
-import { Prosemirror } from "@convex-dev/prosemirror-sync";
+import { ProsemirrorSync } from "@convex-dev/prosemirror-sync";
 
-const prosemirror = new Prosemirror(components.prosemirror);
+const prosemirrorSync = new ProsemirrorSync(components.prosemirrorSync);
 export const {
   getSnapshot,
   submitSnapshot,
   latestVersion,
   getSteps,
   submitSteps,
-} = prosemirror.syncApi({
+} = prosemirrorSync.syncApi({
   // ...
 });
 ```
