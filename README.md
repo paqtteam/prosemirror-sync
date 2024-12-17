@@ -4,10 +4,13 @@
 
 <!-- START: Include on https://convex.dev/components -->
 
-Add a collaborative editor that syncs to the cloud.
+Add a collaborative editor that syncs to the cloud. With this component, users
+can edit the same document in multiple tabs or devices, and the changes will be
+synced to the cloud. The data lives in your Convex database, and can be stored
+alongside the rest of your app's data.
 
-Configure your editor features, add this component to your Convex backend, and
-use the `useTipTapSync` React hook.
+Just configure your editor features, add this component to your Convex backend,
+and use the `useTipTapSync` React hook.
 
 This is a [Convex Component](https://convex.dev/components) that syncs a
 [ProseMirror](https://prosemirror.net/) document between clients via a
@@ -51,7 +54,6 @@ Coming soon:
         can see and edit documents offline (but won't see edits from other tabs
         until they're back online).
 - [ ] Better readme & comments:
-  - [ ] Why should you use this component?
   - [ ] Links to Stack post & other resources.
 
 Future that could be added later:
