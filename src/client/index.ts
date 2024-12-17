@@ -16,8 +16,28 @@ export type SyncApi = ApiFromModules<{
   sync: ReturnType<Prosemirror["syncApi"]>;
 }>["sync"];
 
+// e.g. `ctx` from a Convex mutation or action.
+export type RunMutationCtx = {
+  runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
+};
+
 export class Prosemirror {
   constructor(public component: UseApi<Mounts>) {}
+  /**
+   * Create a new document with the given ID and content.
+   *
+   * @param ctx - A Convex mutation context.
+   * @param id - The document ID.
+   * @param content - The document content. Should be ProseMirror JSON.
+   * @returns A promise that resolves when the document is created.
+   */
+  create(ctx: RunMutationCtx, id: string, content: object) {
+    return ctx.runMutation(this.component.lib.submitSnapshot, {
+      id,
+      version: 1,
+      content: JSON.stringify(content),
+    });
+  }
   syncApi<DataModel extends GenericDataModel>(opts?: {
     checkRead?: (
       ctx: GenericQueryCtx<DataModel>,
