@@ -7,19 +7,38 @@
 Add a collaborative editor that syncs to the cloud.
 
 Configure your editor features, add this component to your Convex backend, and
-use the `useSync` React hook.
+use the `useTipTapSync` React hook.
 
 This is a [Convex Component](https://convex.dev/components) that syncs a
 [ProseMirror](https://prosemirror.net/) document between clients via a
 [TipTap](https://tiptap.dev/) extension.
+
+Example usage, see [below](#usage) for more details:
+
+```tsx
+function CollaborativeEditor() {
+  const sync = useTipTapSync(api.prosemirrorSync, "some-id");
+  return sync.isLoading ? (
+    <p>Loading...</p>
+  ) : sync.initialContent !== null ? (
+    <EditorProvider
+      content={sync.initialContent}
+      extensions={[...extensions, sync.extension]}
+    >
+      <EditorContent editor={null} />
+    </EditorProvider>
+  ) : (
+    <button onClick={() => sync.create(EMPTY_DOC)}>Create document</button>
+  );
+}
+```
 
 Features:
 
 - Safely merges changes between clients via operational transformations (OT).
 - Simple React hook to fetch the initial document and keep it in sync via a
   TipTap extension.
-- Server-side entrypoints for authorizing reads & writes, and responding to
-  new snapshots.
+- Server-side entrypoints for authorizing reads, writes, and snapshots.
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
 - Deletion API for old snapshots & steps.
@@ -32,11 +51,10 @@ Coming soon:
         can see and edit documents offline (but won't see edits from other tabs
         until they're back online).
 - [ ] Better readme & comments:
-  - [ ] Intro: example code snippets
   - [ ] Why should you use this component?
   - [ ] Links to Stack post & other resources.
 
-Future features likely won't make the v1 cut but could be added later:
+Future that could be added later:
 
 - Configuration for debouncing syncing steps (to reduce function calls).
 - Option to write the concrete value each time a delta is submitted.
@@ -105,10 +123,10 @@ export default app;
 
 ## Usage
 
-To use the component, you expose the API in a file in your `convex/` folder,
-and use the `useSync` hook in your React components, passing in a reference
-to the API you defined.
-For this example, we'll create the API in `convex/example.ts`.
+To use the component, you expose the API in a file in your `convex/` folder, and
+use the `useTipTapSync` hook in your React components, passing in a reference to
+the API you defined. For this example, we'll create the API in
+`convex/example.ts`.
 
 ```ts
 // convex/example.ts
@@ -127,14 +145,15 @@ export const {
 });
 ```
 
-In your React components, you can use the `useSync` hook to fetch the initial
-document and keep it in sync via a TipTap extension.
-**Note**: This requires a [`ConvexProvider`](https://docs.convex.dev/quickstart/react#:~:text=Connect%20the%20app%20to%20your%20backend)
+In your React components, you can use the `useTipTapSync` hook to fetch the
+initial document and keep it in sync via a TipTap extension. **Note**: This
+requires a
+[`ConvexProvider`](https://docs.convex.dev/quickstart/react#:~:text=Connect%20the%20app%20to%20your%20backend)
 to be in the component tree.
 
 ```tsx
 // src/MyComponent.tsx
-import { useSync } from "@convex-dev/prosemirror-sync";
+import { useTipTapSync } from "@convex-dev/prosemirror-sync";
 import { EditorContent, EditorProvider } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -142,7 +161,7 @@ const extensions = [StarterKit];
 const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
 function MyComponent() {
-  const sync = useSync(api.example, "some-id");
+  const sync = useTipTapSync(api.example, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
   ) : sync.initialContent !== null ? (
@@ -174,7 +193,8 @@ You can create a new document from the client by calling `sync.create(content)`.
   initial version and all local changes as steps.
 - If multiple clients create the same document, it will fail if they submit
   different initial content.
-- Note: if you don't open that document (`useSync`) while online, it won't sync.
+- Note: if you don't open that document (`useTipTapSync`) while online, it won't
+  sync.
 
 <!-- END: Include on https://convex.dev/components -->
 

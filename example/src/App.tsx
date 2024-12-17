@@ -7,7 +7,7 @@ import Typography from "@tiptap/extension-typography";
 import Underline from "@tiptap/extension-underline";
 import { api } from "../convex/_generated/api";
 import { JSONContent } from "@tiptap/core";
-import { useSync } from "@convex-dev/prosemirror-sync/tiptap";
+import { useTipTapSync } from "@convex-dev/prosemirror-sync/tiptap";
 
 const extensions = [
   StarterKit,
@@ -22,7 +22,7 @@ const extensions = [
 const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
 function App(props: { id: string }) {
-  const sync = useSync(api.example, props.id);
+  const sync = useTipTapSync(api.example, props.id);
   if (!sync.isLoading && sync.initialContent === null) {
     sync.create(EMPTY_DOC);
   }

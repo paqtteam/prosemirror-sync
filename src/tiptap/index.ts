@@ -21,7 +21,11 @@ type UseSyncOptions = {
   snapshotDebounceMs?: number;
 };
 
-export function useSync(syncApi: SyncApi, id: string, opts?: UseSyncOptions) {
+export function useTipTapSync(
+  syncApi: SyncApi,
+  id: string,
+  opts?: UseSyncOptions
+) {
   const convex = useConvex();
   const initial = useInitialState(syncApi, id);
   const extension = useMemo(() => {
