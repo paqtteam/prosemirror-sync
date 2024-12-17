@@ -8,7 +8,7 @@ import {
   mutationGeneric,
   queryGeneric,
 } from "convex/server";
-import { v } from "convex/values";
+import { v, VString } from "convex/values";
 import { Mounts } from "../component/_generated/api";
 import { vClientId } from "../component/schema";
 
@@ -21,7 +21,7 @@ export type RunMutationCtx = {
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
 };
 
-export class Prosemirror {
+export class Prosemirror<Id extends string = string> {
   constructor(public component: UseApi<Mounts>) {}
   /**
    * Create a new document with the given ID and content.
@@ -31,7 +31,7 @@ export class Prosemirror {
    * @param content - The document content. Should be ProseMirror JSON.
    * @returns A promise that resolves when the document is created.
    */
-  create(ctx: RunMutationCtx, id: string, content: object) {
+  create(ctx: RunMutationCtx, id: Id, content: object) {
     return ctx.runMutation(this.component.lib.submitSnapshot, {
       id,
       version: 1,
@@ -41,23 +41,24 @@ export class Prosemirror {
   syncApi<DataModel extends GenericDataModel>(opts?: {
     checkRead?: (
       ctx: GenericQueryCtx<DataModel>,
-      id: string
+      id: Id
     ) => void | Promise<void>;
     checkWrite?: (
       ctx: GenericMutationCtx<DataModel>,
-      id: string
+      id: Id
     ) => void | Promise<void>;
     onSnapshot?: (
       ctx: GenericMutationCtx<DataModel>,
-      id: string,
+      id: Id,
       snapshot: string,
       version: number
     ) => void | Promise<void>;
   }) {
+    const id = v.string() as VString<Id>;
     return {
       getSnapshot: queryGeneric({
         args: {
-          id: v.string(),
+          id,
           version: v.optional(v.number()),
         },
         returns: v.union(
@@ -78,7 +79,7 @@ export class Prosemirror {
       }),
       submitSnapshot: mutationGeneric({
         args: {
-          id: v.string(),
+          id,
           version: v.number(),
           content: v.string(),
         },
@@ -94,7 +95,7 @@ export class Prosemirror {
         },
       }),
       latestVersion: queryGeneric({
-        args: { id: v.string() },
+        args: { id },
         returns: v.union(v.null(), v.number()),
         handler: async (ctx, args) => {
           if (opts?.checkRead) {
@@ -105,7 +106,7 @@ export class Prosemirror {
       }),
       getSteps: queryGeneric({
         args: {
-          id: v.string(),
+          id,
           version: v.number(),
         },
         handler: async (ctx, args) => {
@@ -117,7 +118,7 @@ export class Prosemirror {
       }),
       submitSteps: mutationGeneric({
         args: {
-          id: v.string(),
+          id,
           version: v.number(),
           clientId: vClientId,
           steps: v.array(v.string()),
