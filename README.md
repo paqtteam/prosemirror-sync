@@ -10,17 +10,17 @@ synced to the cloud. The data lives in your Convex database, and can be stored
 alongside the rest of your app's data.
 
 Just configure your editor features, add this component to your Convex backend,
-and use the `useTipTapSync` React hook.
+and use the `useTiptapSync` React hook.
 
 This is a [Convex Component](https://convex.dev/components) that syncs a
 [ProseMirror](https://prosemirror.net/) document between clients via a
-[TipTap](https://tiptap.dev/) extension.
+[Tiptap](https://tiptap.dev/) extension.
 
 Example usage, see [below](#usage) for more details:
 
 ```tsx
 function CollaborativeEditor() {
-  const sync = useTipTapSync(api.prosemirrorSync, "some-id");
+  const sync = useTiptapSync(api.prosemirrorSync, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
   ) : sync.initialContent !== null ? (
@@ -40,7 +40,7 @@ Features:
 
 - Safely merges changes between clients via operational transformations (OT).
 - Simple React hook to fetch the initial document and keep it in sync via a
-  TipTap extension.
+  Tiptap extension.
 - Server-side entrypoints for authorizing reads, writes, and snapshots.
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
@@ -64,7 +64,7 @@ Future that could be added later:
 - Warning when closing tab with unsynced changes (works by default?).
 - Vacuuming controls for old deltas & snapshots.
 - Add a BlockNote convenience wrapper.
-- Convert it to a ProseMirror plugin instead of a TipTap extension, so raw
+- Convert it to a ProseMirror plugin instead of a Tiptap extension, so raw
   ProseMirror usecases can also use it.
 - Handling edge cases, such as old clients with local changes on top of an older
   version of the document where the steps necessary for them to rebase their
@@ -126,7 +126,7 @@ export default app;
 ## Usage
 
 To use the component, you expose the API in a file in your `convex/` folder, and
-use the `useTipTapSync` hook in your React components, passing in a reference to
+use the `useTiptapSync` hook in your React components, passing in a reference to
 the API you defined. For this example, we'll create the API in
 `convex/example.ts`.
 
@@ -147,21 +147,21 @@ export const {
 });
 ```
 
-In your React components, you can use the `useTipTapSync` hook to fetch the
-initial document and keep it in sync via a TipTap extension. **Note**: This
+In your React components, you can use the `useTiptapSync` hook to fetch the
+initial document and keep it in sync via a Tiptap extension. **Note**: This
 requires a
 [`ConvexProvider`](https://docs.convex.dev/quickstart/react#:~:text=Connect%20the%20app%20to%20your%20backend)
 to be in the component tree.
 
 ```tsx
 // src/MyComponent.tsx
-import { useTipTapSync } from "@convex-dev/prosemirror-sync/tiptap";
+import { useTiptapSync } from "@convex-dev/prosemirror-sync/tiptap";
 import { EditorContent, EditorProvider } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../convex/_generated/api";
 
 function MyComponent() {
-  const sync = useTipTapSync(api.example, "some-id");
+  const sync = useTiptapSync(api.example, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
   ) : sync.initialContent !== null ? (
@@ -184,9 +184,28 @@ See a working example in [example.ts](./example/convex/example.ts) and
 
 ## Notes
 
+### Configuring the snapshot debounce interval
+
+The snapshot debounce interval is set to one second by default.
+You can specify a different interval with the `snapshotDebounceMs` option when
+calling `useTiptapSync`.
+
+A snapshot won't be sent until both of these are true:
+
+- The document has been idle for the debounce interval.
+- The current user was the last to make a change.
+
+There can be races, but since each client will submit the snapshot for their
+own change, they won't conflict with each other and are safe to apply.
+
 ### Creating a new document
 
-You can create a new document from the client by calling `sync.create(content)`.
+You can create a new document from the client by calling `sync.create(content)`, or on the server by calling `prosemirrorSync.create(ctx, id, content)`.
+
+The content should be a JSON object matching the
+[Schema](https://tiptap.dev/docs/editor/core-concepts/schema).
+
+For client-side document creation:
 
 - While it's safest to wait until the server confirms the document doesn't exist
   yet (`!sync.isLoading`), you can choose to call it while offline with a newly
@@ -195,7 +214,7 @@ You can create a new document from the client by calling `sync.create(content)`.
   initial version and all local changes as steps.
 - If multiple clients create the same document, it will fail if they submit
   different initial content.
-- Note: if you don't open that document (`useTipTapSync`) while online, it won't
+- Note: if you don't open that document (`useTiptapSync`) while online, it won't
   sync.
 
 <!-- END: Include on https://convex.dev/components -->

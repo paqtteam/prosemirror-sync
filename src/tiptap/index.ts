@@ -21,7 +21,7 @@ type UseSyncOptions = {
   snapshotDebounceMs?: number;
 };
 
-export function useTipTapSync(
+export function useTiptapSync(
   syncApi: SyncApi,
   id: string,
   opts?: UseSyncOptions

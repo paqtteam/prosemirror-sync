@@ -7,7 +7,7 @@ import Typography from "@tiptap/extension-typography";
 import Underline from "@tiptap/extension-underline";
 import { api } from "../convex/_generated/api";
 import { JSONContent } from "@tiptap/core";
-import { useTipTapSync } from "@convex-dev/prosemirror-sync/tiptap";
+import { useTiptapSync } from "@convex-dev/prosemirror-sync/tiptap";
 
 const extensions = [
   StarterKit,
@@ -22,7 +22,7 @@ const extensions = [
 const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
 function App(props: { id: string }) {
-  const sync = useTipTapSync(api.example, props.id);
+  const sync = useTiptapSync(api.example, props.id);
   if (!sync.isLoading && sync.initialContent === null) {
     sync.create(EMPTY_DOC);
   }
@@ -33,7 +33,7 @@ function App(props: { id: string }) {
         This demonstrates syncing a ProseMirror document using Convex to provide
         real-time collaborative editing.
         <br />
-        It uses TipTap for the in-browser editing and support for inline
+        It uses Tiptap for the in-browser editing and support for inline
         Markdown formatting, similar to Notion.
         <br />
         Share this URL to edit the same document, or test co-editing by opening
@@ -55,7 +55,7 @@ function App(props: { id: string }) {
       </div>
       <footer>
         <p className="read-the-docs">
-          Powered by TipTap (ProseMirror) + Convex + Vite + React + TypeScript
+          Powered by Tiptap (ProseMirror) + Convex + Vite + React + TypeScript
         </p>
         <a
           href="https://github.com/get-convex/prosemirror-sync"
