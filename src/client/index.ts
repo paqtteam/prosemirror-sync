@@ -22,6 +22,23 @@ export type RunMutationCtx = {
 };
 
 export class ProsemirrorSync<Id extends string = string> {
+  /**
+   * Backend API for the ProsemirrorSync component.
+   * Responsible for exposing the `sync` API to the client, and having
+   * convenience methods for interacting with the component from the backend.
+   *
+   * Typically used like:
+   *
+   * ```ts
+   * const prosemirrorSync = new ProsemirrorSync(components.prosemirrorSync);
+   * export const {
+   * ... // see {@link syncApi} docstring for details
+   * } = prosemirrorSync.syncApi({...});
+   * ```
+   *
+   * @param component - Generally `components.prosemirrorSync` from
+   * `./_generated/api` once you've configured it in `convex.config.ts`.
+   */
   constructor(public component: UseApi<Mounts>) {}
   /**
    * Create a new document with the given ID and content.
@@ -38,6 +55,35 @@ export class ProsemirrorSync<Id extends string = string> {
       content: JSON.stringify(content),
     });
   }
+  /**
+   * Expose the sync API to the client for use with the `useTiptapSync` hook.
+   * If you export these in `convex/prosemirror.ts`, pass `api.prosemirror`
+   * to the `useTiptapSync` hook.
+   *
+   * It allows you to define optional read and write permissions, along with
+   * a callback when new snapshots are available.
+   *
+   * You can pass the optional type argument `<DataModel>` to have the `ctx`
+   * parameter specific to your tables.
+   *
+   * ```ts
+   * import { DataModel } from "./convex/_generated/dataModel";
+   * // ...
+   * export const { ... } = prosemirrorSync.syncApi<DataModel>({...});
+   * ```
+   *
+   * To define just one function to use for both, you can define it like this:
+   * ```ts
+   * async function checkPermissions(ctx: QueryCtx, id: string) {
+   *   const user = await getAuthUser(ctx);
+   *   if (!user || !(await canUserAccessDocument(user, id))) {
+   *     throw new Error("Unauthorized");
+   *   }
+   * }
+   * ```
+   * @param opts - Optional callbacks.
+   * @returns functions to export, so the `useTiptapSync` hook can use them.
+   */
   syncApi<DataModel extends GenericDataModel>(opts?: {
     checkRead?: (
       ctx: GenericQueryCtx<DataModel>,
