@@ -1,6 +1,10 @@
-# Convex Prosemirror Component
+# Convex ProseMirror Component
 
 [![npm version](https://badge.fury.io/js/@convex-dev%2Fprosemirror-sync.svg)](https://badge.fury.io/js/@convex-dev%2Fprosemirror-sync)
+
+This is a [Convex Component](https://convex.dev/components) that syncs a
+[ProseMirror](https://prosemirror.net/) document between clients via a
+[Tiptap](https://tiptap.dev/) extension.
 
 <!-- START: Include on https://convex.dev/components -->
 
@@ -12,10 +16,6 @@ alongside the rest of your app's data.
 Just configure your editor features, add this component to your Convex backend,
 and use the `useTiptapSync` React hook.
 Read this [Stack post](https://stack.convex.dev/add-a-collaborative-document-editor-to-your-app) for more details.
-
-This is a [Convex Component](https://convex.dev/components) that syncs a
-[ProseMirror](https://prosemirror.net/) document between clients via a
-[Tiptap](https://tiptap.dev/) extension.
 
 [![Example of editing](https://i.vimeocdn.com/video/1963290904-61fca04b89d193f0462f33b686d6c177330ae5c45eef601af2a85903db697072-d_1080x720?r=pad)](https://vimeo.com/1040674822?badge=0&autopause=0)
 
