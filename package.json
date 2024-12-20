@@ -1,6 +1,6 @@
 {
   "name": "@convex-dev/prosemirror-sync",
-  "description": "A prosemirror collab plugin using a Convex component.",
+  "description": "Sync ProseMirror documents for Tiptap using this Convex component.",
   "repository": "github:get-convex/prosemirror-sync",
   "homepage": "https://github.com/get-convex/prosemirror-sync#readme",
   "bugs": {
@@ -14,6 +14,7 @@
     "component",
     "collab",
     "prosemirror",
+    "tiptap",
     "sync"
   ],
   "type": "module",
