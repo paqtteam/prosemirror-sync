@@ -22,7 +22,7 @@ const extensions = [
 const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
 function App(props: { id: string }) {
-  const sync = useTiptapSync(api.example, props.id);
+  const sync = useTiptapSync(api.example, props.id, { debug: true });
   if (!sync.isLoading && sync.initialContent === null) {
     sync.create(EMPTY_DOC);
   }

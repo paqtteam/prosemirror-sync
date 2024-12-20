@@ -14,11 +14,11 @@ import { SyncApi } from "../client";
 // How many steps we will attempt to sync in one request.
 const MAX_STEPS_SYNC = 1000;
 const SNAPSHOT_DEBOUNCE_MS = 1000;
-const log: typeof console.log = console.debug;
 
 type UseSyncOptions = {
   onSyncError?: (error: Error) => void;
   snapshotDebounceMs?: number;
+  debug?: boolean;
 };
 
 export function useTiptapSync(
@@ -26,6 +26,7 @@ export function useTiptapSync(
   id: string,
   opts?: UseSyncOptions
 ) {
+  const log: typeof console.log = opts?.debug ? console.debug : () => {};
   const convex = useConvex();
   const initial = useInitialState(syncApi, id);
   const extension = useMemo(() => {
@@ -105,6 +106,7 @@ export function syncExtension(
   initialState: InitialState,
   opts?: UseSyncOptions
 ) {
+  const log: typeof console.log = opts?.debug ? console.debug : () => {};
   let snapshotTimer: NodeJS.Timeout | undefined;
   const trySubmitSnapshot = (version: number, content: string) => {
     if (snapshotTimer) {
@@ -148,7 +150,15 @@ export function syncExtension(
 
     try {
       if (
-        await doSync(editor, convex, syncApi, id, serverVersion, initialState)
+        await doSync(
+          editor,
+          convex,
+          syncApi,
+          id,
+          serverVersion,
+          initialState,
+          opts?.debug
+        )
       ) {
         const version = collab.getVersion(editor.state);
         const content = JSON.stringify(editor.state.doc.toJSON());
@@ -219,8 +229,10 @@ async function doSync(
   syncApi: SyncApi,
   id: string,
   serverVersion: number | null,
-  initialState: InitialState
+  initialState: InitialState,
+  debug?: boolean
 ) {
+  const log: typeof console.log = debug ? console.debug : () => {};
   if (serverVersion === null) {
     if (initialState.initialVersion <= 1) {
       // This is a new document, so we can create it on the server.
