@@ -11,6 +11,8 @@ import {
 import { v, VString } from "convex/values";
 import { Mounts } from "../component/_generated/api";
 import { vClientId } from "../component/schema";
+import { Schema, Node } from "@tiptap/pm/model";
+import { Step, Transform } from "@tiptap/pm/transform";
 
 export type SyncApi = ApiFromModules<{
   sync: ReturnType<ProsemirrorSync["syncApi"]>;
@@ -19,6 +21,7 @@ export type SyncApi = ApiFromModules<{
 // e.g. `ctx` from a Convex mutation or action.
 export type RunMutationCtx = {
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
+  runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
 };
 
 export class ProsemirrorSync<Id extends string = string> {
@@ -54,6 +57,75 @@ export class ProsemirrorSync<Id extends string = string> {
       version: 1,
       content: JSON.stringify(content),
     });
+  }
+
+  /**
+   * Transform the document by applying the given function to the document.
+   *
+   * This will keep applying the function until the document is synced,
+   * so ensure that the function is idempotent (can be applied multiple times).
+   *
+   * e.g.
+   * ```ts
+   * import { getSchema } from "@tiptap/core";
+   * import { Transform } from "@tiptap/pm/transform";
+   *
+   * const schema = getSchema(extensions);
+   * await prosemirrorSync.transform(ctx, id, schema, (doc) => {
+   *   const tr = new Transform(doc);
+   *   tr.insert(0, schema.text("Hello world"));
+   *   return tr;
+   * });
+   * ```
+   *
+   * @param ctx - A Convex mutation context.
+   * @param id - The document ID.
+   * @param schema - The document schema.
+   * @param fn - A function that takes the document and returns a ProseMirror Transform.
+   * @returns A promise that resolves with the transformed document.
+   */
+  async transform(
+    ctx: RunMutationCtx,
+    id: Id,
+    schema: Schema,
+    fn: (node: Node) => Transform,
+    opts?: { clientId?: string }
+  ) {
+    const snapshot = await ctx.runQuery(this.component.lib.getSnapshot, { id });
+    if (!snapshot.content) {
+      throw new Error("Document not found");
+    }
+    const content = JSON.parse(snapshot.content);
+    const serverVersion = new Transform(schema.nodeFromJSON(content));
+    const stepsResult = await ctx.runQuery(this.component.lib.getSteps, {
+      id,
+      version: snapshot.version,
+    });
+    for (const step of stepsResult.steps) {
+      serverVersion.step(Step.fromJSON(schema, JSON.parse(step)));
+    }
+    let version = stepsResult.version;
+    while (true) {
+      const tr = fn(serverVersion.doc);
+      const result = await ctx.runMutation(this.component.lib.submitSteps, {
+        id,
+        version,
+        clientId: opts?.clientId ?? "transform",
+        steps: tr.steps.map((step) => JSON.stringify(step.toJSON())),
+      });
+      if (result.status === "synced") {
+        await ctx.runMutation(this.component.lib.submitSnapshot, {
+          id,
+          version: version + tr.steps.length,
+          content: JSON.stringify(tr.doc.toJSON()),
+        });
+        return tr.doc;
+      }
+      for (const step of result.steps) {
+        serverVersion.step(Step.fromJSON(schema, JSON.parse(step)));
+      }
+      version += result.steps.length;
+    }
   }
   /**
    * Expose the sync API to the client for use with the `useTiptapSync` hook.
