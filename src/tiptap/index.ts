@@ -199,7 +199,7 @@ export function syncExtension(
         for (const step of initialState.restoredSteps) {
           tr.step(Step.fromJSON(this.editor.schema, step));
         }
-        // this.editor.view.dispatch(tr);
+        this.editor.view.dispatch(tr);
       }
       watch = convex.watchQuery(syncApi.latestVersion, { id });
       unsubscribe = watch.onUpdate(() => {
