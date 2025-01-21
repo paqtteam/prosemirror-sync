@@ -4,6 +4,7 @@ import { mutation } from "./_generated/server";
 import { ProsemirrorSync } from "@convex-dev/prosemirror-sync";
 import { getSchema } from "@tiptap/core";
 import { Transform, Step } from "@tiptap/pm/transform";
+import { EditorState } from "@tiptap/pm/state";
 import { extensions } from "../src/extensions";
 
 const prosemirrorSync = new ProsemirrorSync(components.prosemirrorSync);
@@ -36,9 +37,20 @@ export const transformExample = mutation({
   },
   handler: async (ctx, { id }) => {
     const schema = getSchema(extensions);
-    const node = await prosemirrorSync.transform(ctx, id, schema, (node) => {
-      const tr = new Transform(node);
-      tr.insert(0, schema.text("Hello world"));
+    const { doc, version } = await prosemirrorSync.getDoc(ctx, id, schema);
+    // You could do something more complex here, like generating an AI summary.
+    const newContent = `Overall length: ${doc.textContent.length}`;
+    const node = await prosemirrorSync.transform(ctx, id, schema, (doc, v) => {
+      if (v !== version) {
+        console.log("FYI the text has changed");
+        // If we wanted to avoid making changes, we could return null here.
+        // return null;
+      }
+      const tr = EditorState.create({ doc }).tr;
+      tr.insertText(newContent, 0);
+      // Alternatively, you could use a Transform object directly:
+      // const tr = new Transform(node);
+      // tr.insert(0, schema.text("Hello world"));
       return tr;
     });
     return node.toJSON();
