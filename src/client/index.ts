@@ -59,6 +59,19 @@ export class ProsemirrorSync<Id extends string = string> {
     });
   }
 
+  async getDoc(ctx: RunMutationCtx, id: Id, schema: Schema) {
+    const { transform, version } = await getLatestVersion(
+      ctx,
+      this.component,
+      id,
+      schema
+    );
+    return {
+      version,
+      doc: transform.doc,
+    };
+  }
+
   /**
    * Transform the document by applying the given function to the document.
    *
@@ -81,32 +94,26 @@ export class ProsemirrorSync<Id extends string = string> {
    * @param ctx - A Convex mutation context.
    * @param id - The document ID.
    * @param schema - The document schema.
-   * @param fn - A function that takes the document and returns a ProseMirror Transform.
+   * @param fn - A function that takes the document and returns a Transform
+   *   or null if no changes are needed.
    * @returns A promise that resolves with the transformed document.
    */
   async transform(
     ctx: RunMutationCtx,
     id: Id,
     schema: Schema,
-    fn: (node: Node) => Transform,
+    fn: (
+      node: Node,
+      version: number
+    ) => Transform | null | Promise<Transform | null>,
     opts?: { clientId?: string }
   ) {
-    const snapshot = await ctx.runQuery(this.component.lib.getSnapshot, { id });
-    if (!snapshot.content) {
-      throw new Error("Document not found");
-    }
-    const content = JSON.parse(snapshot.content);
-    const serverVersion = new Transform(schema.nodeFromJSON(content));
-    const stepsResult = await ctx.runQuery(this.component.lib.getSteps, {
-      id,
-      version: snapshot.version,
-    });
-    for (const step of stepsResult.steps) {
-      serverVersion.step(Step.fromJSON(schema, JSON.parse(step)));
-    }
-    let version = stepsResult.version;
+    const { transform: serverVersion, version: initialVersion } =
+      await getLatestVersion(ctx, this.component, id, schema);
+    let version = initialVersion;
     while (true) {
-      const tr = fn(serverVersion.doc);
+      const tr = await fn(serverVersion.doc, version);
+      if (tr === null) return serverVersion.doc;
       const result = await ctx.runMutation(this.component.lib.submitSteps, {
         id,
         version,
@@ -250,6 +257,28 @@ export class ProsemirrorSync<Id extends string = string> {
       }),
     };
   }
+}
+
+async function getLatestVersion(
+  ctx: RunMutationCtx,
+  component: UseApi<Mounts>,
+  id: string,
+  schema: Schema
+) {
+  const snapshot = await ctx.runQuery(component.lib.getSnapshot, { id });
+  if (!snapshot.content) {
+    throw new Error("Document not found");
+  }
+  const content = JSON.parse(snapshot.content);
+  const transform = new Transform(schema.nodeFromJSON(content));
+  const { steps, version } = await ctx.runQuery(component.lib.getSteps, {
+    id,
+    version: snapshot.version,
+  });
+  for (const step of steps) {
+    transform.step(Step.fromJSON(schema, JSON.parse(step)));
+  }
+  return { transform, version };
 }
 
 /* Type utils follow */
