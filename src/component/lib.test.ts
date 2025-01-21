@@ -241,4 +241,39 @@ describe("prosemirror lib", () => {
       })
     ).rejects.toThrow();
   });
+  test("submitSnapshot deletes older snapshot", async () => {
+    const t = convexTest(schema, modules);
+    const id = crypto.randomUUID();
+    // first one should stick around
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 1,
+      content: "content",
+    });
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 2,
+      content: "content2",
+    });
+    await t.mutation(api.lib.submitSnapshot, {
+      id,
+      version: 3,
+      content: "content3",
+    });
+    const { content, version } = await t.query(api.lib.getSnapshot, {
+      id,
+      version: 3,
+    });
+    expect(content).toEqual("content3");
+    expect(version).toEqual(3);
+    const { content: content2, version: version2 } = await t.query(
+      api.lib.getSnapshot,
+      {
+        id,
+        version: 2,
+      }
+    );
+    expect(content2).toEqual("content");
+    expect(version2).toEqual(1);
+  });
 });
