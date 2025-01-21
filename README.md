@@ -47,7 +47,8 @@ Features:
 - Server-side entrypoints for authorizing reads, writes, and snapshots.
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
-- Deletion API for old snapshots & steps.
+- Deletion API for old snapshots & steps. By default all steps are kept, but
+  only the original and newest snapshots.
 - Transform the document server-side, enabling easy AI interoperation.
 
 Coming soon:
@@ -93,7 +94,6 @@ Missing features that aren't currently planned:
 - Handling multiple AsyncStorage instances that are restored from the same
   cloud backup, leading to multiple clients with the same clientID. For now,
   we'll assume that AsyncStorage is only used by one client at a time.
-  A strategy here would be to
 
 Found a bug? Feature request? [File it here](https://github.com/get-convex/prosemirror-sync/issues).
 
