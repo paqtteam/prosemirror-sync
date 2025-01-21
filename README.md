@@ -48,6 +48,7 @@ Features:
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
 - Deletion API for old snapshots & steps.
+- Transform the document server-side, enabling easy AI interoperation.
 
 Coming soon:
 
@@ -73,8 +74,7 @@ Future that could be added later:
   version of the document where the steps necessary for them to rebase their
   changes have since been vacuumed.
 - Type parameter for the document ID for more type safety for folks using Convex
-  IDs as their document IDs. Maybe even providing the validator for the document
-  ID to the component client constructor.
+  IDs as their document IDs. This is available on the server but not browser.
 - Drop clientIds entirely and just use two UUIDs locally to differentiate our
   changes from server-applied changes.
 - Add an optional authorId to the data model to track who made which changes.
@@ -220,6 +220,70 @@ For client-side document creation:
 - Note: if you don't open that document (`useTiptapSync`) while online, it won't
   sync.
 
+### Transforming the document server-side
+
+You can transform the document server-side. It will give you the latest
+version of the document, and you return a
+[ProseMirror Transform](https://prosemirror.net/docs/ref/#transform.Transform).
+
+You can make this transoform via `new Transform(doc)` or, if you are hydrating a
+full `EditorState`, you can use `Editor.create({doc}).tr` to create a new
+`Transaction` (which is a subclass of `Transform`).
+
+For example:
+
+```ts
+import { getSchema } from "@tiptap/core";
+import { EditorState } from "@tiptap/pm/state";
+
+export const transformExample = action({
+  args: {
+    id: v.string(),
+  },
+  handler: async (ctx, { id }) => {
+    const schema = getSchema(extensions);
+    await prosemirrorSync.transform(ctx, id, schema, (doc) => {
+      const tr = EditorState.create({ doc }).tr;
+      tr.insertText("Hello, world!", 0);
+      return tr;
+    });
+  },
+});
+```
+
+- The `extensions` should be the same as the ones used by your client editor,
+  for any extensions that affect the schema (not the sync extension).
+- The `transform` function can be called multiple times if the document is
+  being modified concurrently. Ideally this callback doesn't do any slow
+  operations internally. Instead, do them beforehand.
+- The `doc` may differ from the one returned from `getDoc`. You can compare
+  the `version` returned from `getDoc` to the second argument to the `transform`
+  function to see if the document has changed.
+- The `transform` function can return a null value to abort making changes.
+- If you're passing along a position to insert the text, be aware that changes
+  happening in parallel may cause the position to change. You can pass more
+  stable identifiers, or use the ProseMirror mapping capabilities to map the
+  position between different versions by fetching the steps between the versions
+  fetched with `(component).lib.getSteps`.
+
+```ts
+import { Transform } from "@tiptap/pm/transform";
+
+// An example of doing slower AI operations beforehand:
+const schema = getSchema(extensions);
+const { doc, version } = await prosemirrorSync.getDoc(ctx, id, schema);
+const content = await generateAIContent(doc);
+await prosemirrorSync.transform(ctx, id, schema, (doc, v) => {
+  if (v !== version) {
+    // Decide what to do if the document changes.
+  }
+  // An example of using Transform directly.
+  const tr = new Transform(doc);
+  tr.insert(0, schema.text(content));
+  return tr;
+});
+```
+
 <!-- END: Include on https://convex.dev/components -->
 
 ## Running the example locally
@@ -237,5 +301,6 @@ npm run dev
 And in another terminal, run:
 
 ```sh
+cd example
 npm run dev:frontend
 ```
