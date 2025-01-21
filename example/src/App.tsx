@@ -1,23 +1,9 @@
 import "./App.css";
 import { EditorContent, EditorProvider } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import Typography from "@tiptap/extension-typography";
-import Underline from "@tiptap/extension-underline";
 import { api } from "../convex/_generated/api";
 import { JSONContent } from "@tiptap/core";
 import { useTiptapSync } from "@convex-dev/prosemirror-sync/tiptap";
-
-const extensions = [
-  StarterKit,
-  TaskItem.configure({
-    nested: true,
-  }),
-  TaskList,
-  Typography,
-  Underline,
-];
+import { extensions } from "./extensions";
 
 const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
 
