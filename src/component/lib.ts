@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, QueryCtx } from "./_generated/server";
+import { mutation, MutationCtx, query, QueryCtx } from "./_generated/server";
 import { Doc } from "./_generated/dataModel";
 import { vClientId } from "./schema";
 import { api } from "./_generated/api";
@@ -31,6 +31,14 @@ export const submitSnapshot = mutation({
       version: args.version,
       content: args.content,
     });
+    if (args.version > 1) {
+      // Delete all older snapshots, except the original one.
+      await deleteSnapshotsHelper(ctx, {
+        id: args.id,
+        afterVersion: 1,
+        beforeVersion: args.version,
+      });
+    }
   },
 });
 
@@ -224,31 +232,38 @@ export const deleteSnapshots = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const versions = await ctx.db
-      .query("snapshots")
-      .withIndex("id_version", (q) => {
-        const eq = q.eq("id", args.id);
-        const after =
-          args.afterVersion !== undefined
-            ? eq.gt("version", args.afterVersion)
-            : eq;
-        const before =
-          args.beforeVersion !== undefined
-            ? after.lt("version", args.beforeVersion)
-            : after;
-        return before;
-      })
-      .take(MAX_SNAPSHOT_FETCH);
-    await Promise.all(versions.map((doc) => ctx.db.delete(doc._id)));
-    if (versions.length === MAX_SNAPSHOT_FETCH) {
-      await ctx.scheduler.runAfter(0, api.lib.deleteSnapshots, {
-        id: args.id,
-        beforeVersion: args.beforeVersion,
-        afterVersion: versions[versions.length - 1].version,
-      });
-    }
+    await deleteSnapshotsHelper(ctx, args);
   },
 });
+
+async function deleteSnapshotsHelper(
+  ctx: MutationCtx,
+  args: { id: string; afterVersion?: number; beforeVersion?: number }
+) {
+  const versions = await ctx.db
+    .query("snapshots")
+    .withIndex("id_version", (q) => {
+      const eq = q.eq("id", args.id);
+      const after =
+        args.afterVersion !== undefined
+          ? eq.gt("version", args.afterVersion)
+          : eq;
+      const before =
+        args.beforeVersion !== undefined
+          ? after.lt("version", args.beforeVersion)
+          : after;
+      return before;
+    })
+    .take(MAX_SNAPSHOT_FETCH);
+  await Promise.all(versions.map((doc) => ctx.db.delete(doc._id)));
+  if (versions.length === MAX_SNAPSHOT_FETCH) {
+    await ctx.scheduler.runAfter(0, api.lib.deleteSnapshots, {
+      id: args.id,
+      beforeVersion: args.beforeVersion,
+      afterVersion: versions[versions.length - 1].version,
+    });
+  }
+}
 
 /**
  * Delete steps before some timestamp.
