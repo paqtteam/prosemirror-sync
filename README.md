@@ -24,16 +24,11 @@ Example usage, see [below](#usage) for more details:
 
 ```tsx
 function CollaborativeEditor() {
-  const sync = useTiptapSync(api.prosemirrorSync, "some-id");
+  const sync = useBlockNoteSync(api.prosemirrorSync, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
-  ) : sync.initialContent !== null ? (
-    <EditorProvider
-      content={sync.initialContent}
-      extensions={[...extensions, sync.extension]}
-    >
-      <EditorContent editor={null} />
-    </EditorProvider>
+  ) : sync.editor ? (
+    <BlockNoteView editor={sync.editor} />
   ) : (
     <button onClick={() => sync.create(EMPTY_DOC)}>Create document</button>
   );
