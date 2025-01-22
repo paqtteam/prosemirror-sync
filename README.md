@@ -47,43 +47,8 @@ Features:
 - Deletion API for old snapshots & steps.
 - Transform the document server-side, enabling easy AI interoperation.
 
-Features that could be added later:
-
-- Offline editing support: cache the document and local changes in
-  `sessionStorage` and sync when back online (only for active browser tab).
-  - Also save snapshots (but not local edits) to `localStorage` so new tabs
-    can see and edit documents offline (but won't see edits from other tabs
-    until they're back online).
-- Configuration for debouncing syncing steps (to reduce function calls).
-- Option to write the concrete value each time a delta is submitted.
-- Pluggable storage for ReactNative, assuming single-session.
-- Warning when closing tab with unsynced changes (works by default?).
-- Convert it to a ProseMirror plugin instead of a Tiptap extension, so raw
-  ProseMirror usecases can also use it.
-- Handling edge cases, such as old clients with local changes on top of an older
-  version of the document where the steps necessary for them to rebase their
-  changes have since been vacuumed.
-- Type parameter for the document ID for more type safety for folks using Convex
-  IDs as their document IDs. This is available on the server but not browser.
-- Drop clientIds entirely and just use two UUIDs locally to differentiate our
-  changes from server-applied changes.
-- Add an optional authorId to the data model to track who made which changes.
-
-Missing features that aren't currently planned:
-
-- Supporting documents larger than 1 Megabyte.
-- Offline support that syncs changes between browser tabs or peer-to-peer.
-- Syncing Yjs documents instead of ProseMirror steps. That would be done by a
-  different Yjs-specific component.
-- Syncing presence (e.g. showing other users' names and cursor in the UI). This
-  is another thing a Yjs-oriented ProseMirror component could tackle.
-- Callback to confirm rebases and handle failures in the client (during sync).
-- Optimization to sync a snapshot instead of many deltas when an old client
-  reconnects and doesn't have local changes.
-- Handling multiple AsyncStorage instances that are restored from the same
-  cloud backup, leading to multiple clients with the same clientID. For now,
-  we'll assume that AsyncStorage is only used by one client at a time.
-
+See [below](#future-features) for future feature ideas and
+[CONTRIBUTING.md](./CONTRIBUTING.md) for how to contribute.
 Found a bug? Feature request? [File it here](https://github.com/get-convex/prosemirror-sync/issues).
 
 ## Pre-requisite: Convex
@@ -308,6 +273,45 @@ await prosemirrorSync.transform(ctx, id, schema, (doc, v) => {
   return tr;
 });
 ```
+
+## Future features
+
+Features that could be added later:
+
+- Offline editing support: cache the document and local changes in
+  `sessionStorage` and sync when back online (only for active browser tab).
+  - Also save snapshots (but not local edits) to `localStorage` so new tabs
+    can see and edit documents offline (but won't see edits from other tabs
+    until they're back online).
+- Configuration for debouncing syncing steps (to reduce function calls).
+- Option to write the concrete value each time a delta is submitted.
+- Pluggable storage for ReactNative, assuming single-session.
+- Warning when closing tab with unsynced changes (works by default?).
+- Convert it to a ProseMirror plugin instead of a Tiptap extension, so raw
+  ProseMirror usecases can also use it.
+- Handling edge cases, such as old clients with local changes on top of an older
+  version of the document where the steps necessary for them to rebase their
+  changes have since been vacuumed.
+- Type parameter for the document ID for more type safety for folks using Convex
+  IDs as their document IDs. This is available on the server but not browser.
+- Drop clientIds entirely and just use two UUIDs locally to differentiate our
+  changes from server-applied changes.
+- Add an optional authorId to the data model to track who made which changes.
+
+Missing features that aren't currently planned:
+
+- Supporting documents larger than 1 Megabyte.
+- Offline support that syncs changes between browser tabs or peer-to-peer.
+- Syncing Yjs documents instead of ProseMirror steps. That would be done by a
+  different Yjs-specific component.
+- Syncing presence (e.g. showing other users' names and cursor in the UI). This
+  is another thing a Yjs-oriented ProseMirror component could tackle.
+- Callback to confirm rebases and handle failures in the client (during sync).
+- Optimization to sync a snapshot instead of many deltas when an old client
+  reconnects and doesn't have local changes.
+- Handling multiple AsyncStorage instances that are restored from the same
+  cloud backup, leading to multiple clients with the same clientID. For now,
+  we'll assume that AsyncStorage is only used by one client at a time.
 
 <!-- END: Include on https://convex.dev/components -->
 
