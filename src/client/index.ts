@@ -59,6 +59,16 @@ export class ProsemirrorSync<Id extends string = string> {
     });
   }
 
+  /**
+   * Get the latest document version and content.
+   *
+   * @param ctx - A Convex mutation context.
+   * @param id - The document ID.
+   * @param schema - Your ProseMirror schema.
+   *   For Tiptap, use `getSchema(extensions)`.
+   *   For BlockNote, use `editor.pmSchema`.
+   * @returns The latest ProseMirror doc (Node) and version.
+   */
   async getDoc(ctx: RunMutationCtx, id: Id, schema: Schema) {
     const { transform, version } = await getLatestVersion(
       ctx,
@@ -164,20 +174,46 @@ export class ProsemirrorSync<Id extends string = string> {
    * @returns functions to export, so the `useTiptapSync` hook can use them.
    */
   syncApi<DataModel extends GenericDataModel>(opts?: {
+    /**
+     * Optional callback to check read permissions.
+     * Throw an error if the user is not authorized to read the document.
+     * @param ctx - A Convex query context.
+     * @param id - The document ID.
+     */
     checkRead?: (
       ctx: GenericQueryCtx<DataModel>,
       id: Id
     ) => void | Promise<void>;
+    /**
+     * Optional callback to check write permissions.
+     * Throw an error if the user is not authorized to write to the document.
+     * @param ctx - A Convex mutation context.
+     * @param id - The document ID.
+     */
     checkWrite?: (
       ctx: GenericMutationCtx<DataModel>,
       id: Id
     ) => void | Promise<void>;
+    /**
+     * Optional callback to run when a new snapshot is available.
+     * Version 1 is the initial content.
+     * @param ctx - A Convex mutation context.
+     * @param id - The document ID.
+     * @param snapshot - The snapshot content, as stringified ProseMirror JSON.
+     * @param version - The version this snapshot represents.
+     */
     onSnapshot?: (
       ctx: GenericMutationCtx<DataModel>,
       id: Id,
       snapshot: string,
       version: number
     ) => void | Promise<void>;
+    /**
+     * Whether to prune old snapshots.
+     * If set to true, only the original and newest snapshots are kept.
+     * @default true
+     */
+    pruneSnapshots?: boolean;
   }) {
     const id = v.string() as VString<Id>;
     return {
@@ -216,7 +252,10 @@ export class ProsemirrorSync<Id extends string = string> {
           if (opts?.onSnapshot) {
             await opts.onSnapshot(ctx, args.id, args.content, args.version);
           }
-          await ctx.runMutation(this.component.lib.submitSnapshot, args);
+          await ctx.runMutation(this.component.lib.submitSnapshot, {
+            ...args,
+            pruneSnapshots: opts?.pruneSnapshots,
+          });
         },
       }),
       latestVersion: queryGeneric({

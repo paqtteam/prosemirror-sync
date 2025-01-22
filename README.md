@@ -44,8 +44,7 @@ Features:
 - Server-side entrypoints for authorizing reads, writes, and snapshots.
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
-- Deletion API for old snapshots & steps. By default all steps are kept, but
-  only the original and newest snapshots.
+- Deletion API for old snapshots & steps.
 - Transform the document server-side, enabling easy AI interoperation.
 
 Features that could be added later:
@@ -59,7 +58,6 @@ Features that could be added later:
 - Option to write the concrete value each time a delta is submitted.
 - Pluggable storage for ReactNative, assuming single-session.
 - Warning when closing tab with unsynced changes (works by default?).
-- Vacuuming controls for old deltas & snapshots.
 - Convert it to a ProseMirror plugin instead of a Tiptap extension, so raw
   ProseMirror usecases can also use it.
 - Handling edge cases, such as old clients with local changes on top of an older

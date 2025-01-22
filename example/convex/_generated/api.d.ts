@@ -88,7 +88,12 @@ export declare const components: {
       submitSnapshot: FunctionReference<
         "mutation",
         "internal",
-        { content: string; id: string; version: number },
+        {
+          content: string;
+          id: string;
+          pruneSnapshots?: boolean;
+          version: number;
+        },
         null
       >;
       submitSteps: FunctionReference<

@@ -8,7 +8,12 @@ const MAX_DELTA_FETCH = 1000;
 const MAX_SNAPSHOT_FETCH = 10;
 
 export const submitSnapshot = mutation({
-  args: { id: v.string(), version: v.number(), content: v.string() },
+  args: {
+    id: v.string(),
+    version: v.number(),
+    content: v.string(),
+    pruneSnapshots: v.optional(v.boolean()),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -31,7 +36,7 @@ export const submitSnapshot = mutation({
       version: args.version,
       content: args.content,
     });
-    if (args.version > 1) {
+    if (args.version > 1 && args.pruneSnapshots) {
       // Delete all older snapshots, except the original one.
       await deleteSnapshotsHelper(ctx, {
         id: args.id,

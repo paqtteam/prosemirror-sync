@@ -76,7 +76,12 @@ export type Mounts = {
     submitSnapshot: FunctionReference<
       "mutation",
       "public",
-      { content: string; id: string; version: number },
+      {
+        content: string;
+        id: string;
+        pruneSnapshots?: boolean;
+        version: number;
+      },
       null
     >;
     submitSteps: FunctionReference<
