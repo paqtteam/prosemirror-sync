@@ -249,16 +249,19 @@ describe("prosemirror lib", () => {
       id,
       version: 1,
       content: "content",
+      pruneSnapshots: true,
     });
     await t.mutation(api.lib.submitSnapshot, {
       id,
       version: 2,
       content: "content2",
+      pruneSnapshots: true,
     });
     await t.mutation(api.lib.submitSnapshot, {
       id,
       version: 3,
       content: "content3",
+      pruneSnapshots: true,
     });
     const { content, version } = await t.query(api.lib.getSnapshot, {
       id,
