@@ -48,18 +48,13 @@ Features:
   only the original and newest snapshots.
 - Transform the document server-side, enabling easy AI interoperation.
 
-Coming soon:
+Features that could be added later:
 
-- [ ] Offline editing support: cache the document and local changes in
-      `sessionStorage` and sync when back online (only for active browser tab).
-  - [ ] Also save snapshots (but not local edits) to `localStorage` so new tabs
-        can see and edit documents offline (but won't see edits from other tabs
-        until they're back online).
-- [ ] Better readme & comments:
-  - [ ] Links to Stack post & other resources.
-
-Future that could be added later:
-
+- Offline editing support: cache the document and local changes in
+  `sessionStorage` and sync when back online (only for active browser tab).
+  - Also save snapshots (but not local edits) to `localStorage` so new tabs
+    can see and edit documents offline (but won't see edits from other tabs
+    until they're back online).
 - Configuration for debouncing syncing steps (to reduce function calls).
 - Option to write the concrete value each time a delta is submitted.
 - Pluggable storage for ReactNative, assuming single-session.
