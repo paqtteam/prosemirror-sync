@@ -35,6 +35,20 @@ function CollaborativeEditor() {
 }
 ```
 
+For the editor, you can choose to use Tiptap or BlockNote.
+
+- Tiptap is based on ProseMirror and saves you a lot of configuration compared
+  to using the ProseMirror editor directly. It has a rich ecosystem of
+  extensions, and is very customizable.
+- BlockNote is based on Tiptap and has a nicer UI and experience out of the box,
+  at the cost of being harder to extend and customize for advanced usecases. If
+  you're looking for the easiest way to get all the fancy formatting options,
+  this is it.
+- Unfortunately, even though they both are based on ProseMirror, the data model
+  differs, so it's not trivial to switch editors later on without migrating all
+  of the data, so you might experiment with both before launching publicly.
+
+Features:
 Features:
 
 - Safely merges changes between clients via operational transformations (OT).
