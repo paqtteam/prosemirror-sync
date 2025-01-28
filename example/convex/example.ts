@@ -1,6 +1,6 @@
 import { v } from "convex/values";
-import { components } from "./_generated/api";
-import { mutation } from "./_generated/server";
+import { components, internal } from "./_generated/api";
+import { action, internalMutation, mutation } from "./_generated/server";
 import { ProsemirrorSync } from "@convex-dev/prosemirror-sync";
 import { getSchema } from "@tiptap/core";
 import { Transform, Step } from "@tiptap/pm/transform";
@@ -23,37 +23,58 @@ export const {
     // const user = await userFromAuth(ctx);
     // ...validate that the user can write to this document
   },
-  onSnapshot(ctx, id, snapshot, version) {
+  async onSnapshot(ctx, id, snapshot, version) {
     // ...do something with the snapshot, like store a copy in another table,
     // save a text version of the document for text search, or generate
     // embeddings for vector search.
+    const node = getSchema(extensions).nodeFromJSON(JSON.parse(snapshot));
+    await ctx.scheduler.runAfter(0, internal.example.updateDocSearchIndex, {
+      id,
+      content: node.textContent,
+    });
+  },
+});
+
+async function generateContent(doc: string) {
+  return `Overall length: ${doc.length}`;
+}
+
+// We keep a text search index on the documents table for easy search.
+// But we don't update that full version all the time, for efficiency.
+export const updateDocSearchIndex = internalMutation({
+  args: { id: v.string(), content: v.string() },
+  handler: async (ctx, { id, content }) => {
+    const existing = await ctx.db
+      .query("documents")
+      .withIndex("docId", (q) => q.eq("docId", id))
+      .unique();
+    if (!existing) {
+      await ctx.db.insert("documents", { docId: id, content });
+    } else {
+      await ctx.db.patch(existing._id, { content });
+    }
   },
 });
 
 // This is an example of how to modify a document using the transform fn.
-export const transformExample = mutation({
-  args: {
-    id: v.string(),
-  },
+export const transformExample = action({
+  args: { id: v.string() },
   handler: async (ctx, { id }) => {
     const schema = getSchema(extensions);
     const { doc, version } = await prosemirrorSync.getDoc(ctx, id, schema);
-    // You could do something more complex here, like generating an AI summary.
-    const newContent = `Overall length: ${doc.textContent.length}`;
+    const newContent = await generateContent(doc.textContent);
     const node = await prosemirrorSync.transform(ctx, id, schema, (doc, v) => {
       if (v !== version) {
-        console.log("FYI the text has changed");
         // If we wanted to avoid making changes, we could return null here.
-        // return null;
+        // Or we could rebase our changes on top of the new document.
       }
       const tr = EditorState.create({ doc }).tr;
-      tr.insertText(newContent, 0);
-      // Alternatively, you could use a Transform object directly:
-      // const tr = new Transform(node);
-      // tr.insert(0, schema.text("Hello world"));
-      return tr;
+      return tr.insertText(newContent, 0);
     });
-    return node.toJSON();
+    await ctx.scheduler.runAfter(0, internal.example.updateDocSearchIndex, {
+      id,
+      content: node.textContent,
+    });
   },
 });
 
