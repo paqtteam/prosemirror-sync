@@ -13,8 +13,10 @@ export type BlockNoteSyncOptions = UseSyncOptions & {
    * If you pass options into the editor, you should pass them here, to ensure
    * the initialContent is parsed with the correct schema.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  editorOptions?: Partial<BlockNoteEditorOptions<any, any, any>>;
+  editorOptions?: Partial<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Omit<BlockNoteEditorOptions<any, any, any>, "initialContent">
+  >;
 };
 
 export function useBlockNoteSync(
