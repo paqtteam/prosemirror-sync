@@ -37,7 +37,6 @@ export function useBlockNoteSync(
     // Convert the prosemirror document to BlockNote blocks.
     // inspired by https://github.com/TypeCellOS/BlockNote/blob/main/packages/server-util/src/context/ServerBlockNoteEditor.ts#L42
     const pmNode = editor.pmSchema.nodeFromJSON(sync.initialContent);
-    console.log(pmNode);
     if (pmNode.firstChild) {
       pmNode.firstChild.descendants((node) => {
         blocks.push(
