@@ -26,9 +26,9 @@ function App(props: { id: string }) {
       <div className="card">
         <strong>{editor}</strong>
         {useBlockNote ? (
-          <BlockNoteExample id={props.id} />
+          <BlockNoteExample id={props.id + "-blocknote"} />
         ) : (
-          <TipTapExample id={props.id} />
+          <TipTapExample id={props.id + "-tiptap"} />
         )}
       </div>
       <footer>
