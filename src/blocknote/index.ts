@@ -39,14 +39,7 @@ export function useBlockNoteSync(
     const pmNode = editor.pmSchema.nodeFromJSON(sync.initialContent);
     if (pmNode.firstChild) {
       pmNode.firstChild.descendants((node) => {
-        blocks.push(
-          nodeToBlock(
-            node,
-            editor.schema.blockSchema,
-            editor.schema.inlineContentSchema,
-            editor.schema.styleSchema
-          )
-        );
+        blocks.push(nodeToBlock(node, editor.pmSchema));
         return false;
       });
     }
