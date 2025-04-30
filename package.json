@@ -7,7 +7,7 @@
     "email": "support@convex.dev",
     "url": "https://github.com/get-convex/prosemirror-sync/issues"
   },
-  "version": "0.1.14-alpha.0",
+  "version": "0.1.14-alpha.1",
   "license": "Apache-2.0",
   "keywords": [
     "convex",
@@ -28,7 +28,10 @@
     "prepare": "npm run build",
     "prepack": "node node10stubs.mjs",
     "postpack": "node node10stubs.mjs --cleanup",
-    "test": "vitest",
+    "alpha": "rm -rf dist && npm run build && npm run test && npm version prerelease --preid alpha && npm publish --tag alpha && git push --tags",
+    "release": "rm -rf dist && npm run build && npm run test && npm version patch && npm publish && git push --tags",
+    "test": "vitest run --typecheck",
+    "test:watch": "vitest --typecheck",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:coverage": "vitest run --coverage --coverage.reporter=text"
   },
@@ -80,26 +83,26 @@
     }
   },
   "peerDependencies": {
-    "convex": "~1.16.5 || >=1.17.0 <1.25.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "@blocknote/core": "^0.29.1",
     "@tiptap/core": "^2.7.0",
-    "@blocknote/core": "^0.23.0"
+    "convex": ">=1.21.0 <1.25.0",
+    "react": "^18.3.1 || ^19.0.0",
+    "react-dom": "^18.3.1 || ^19.0.0"
   },
   "optionalDependencies": {
-    "@blocknote/core": "^0.23.0"
+    "@blocknote/core": "^0.29.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/node": "^18.17.0",
-    "@types/react": "^18.3.3",
+    "@types/react": "^18.3.3 || ^19.0.0",
     "convex-test": "^0.0.33",
     "eslint": "^9.9.1",
     "globals": "^15.9.0",
     "prettier": "3.2.5",
     "typescript": "~5.0.3",
     "typescript-eslint": "^8.4.0",
-    "vitest": "^2.1.4"
+    "vitest": "^3.1.2"
   },
   "main": "./dist/commonjs/client/index.js",
   "types": "./dist/commonjs/client/index.d.ts",
