@@ -83,14 +83,14 @@
     }
   },
   "peerDependencies": {
-    "@blocknote/core": "^0.29.1",
+    "@blocknote/core": "^0.29.1 || ^0.30.0",
     "@tiptap/core": "^2.7.0",
     "convex": ">=1.21.0 <1.25.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-dom": "^18.3.1 || ^19.0.0"
   },
   "optionalDependencies": {
-    "@blocknote/core": "^0.29.1"
+    "@blocknote/core": "^0.29.1 || ^0.30.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
