@@ -35,7 +35,8 @@ function CollaborativeEditor() {
 }
 ```
 
-For the editor, you can choose to use Tiptap or BlockNote.
+For the editor, you can choose to use Tiptap or BlockNote. Go with BlockNote
+unless you want to customize the editor heavily.
 
 - Tiptap is based on ProseMirror and saves you a lot of configuration compared
   to using the ProseMirror editor directly. It has a rich ecosystem of
@@ -48,7 +49,6 @@ For the editor, you can choose to use Tiptap or BlockNote.
   differs, so it's not trivial to switch editors later on without migrating all
   of the data, so you might experiment with both before launching publicly.
 
-Features:
 Features:
 
 - Safely merges changes between clients via operational transformations (OT).
@@ -124,6 +124,11 @@ document and keep it in sync via a Tiptap extension. **Note**: This requires a
 to be in the component tree.
 
 ### BlockNote editor
+
+**IMPORTANT**: BlockNote doesn't currently support `<StrictMode>` in React 19.
+If you're using React 19, make sure you remove any `<React.StrictMode>` blocks
+and set `reactStrictMode: false` in your `next.config.ts` if applicable.
+[docs](https://www.blocknotejs.org/docs/advanced/nextjs#react-19--next-15-strictmode)
 
 ```tsx
 // src/MyComponent.tsx
