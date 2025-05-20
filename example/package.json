@@ -8,7 +8,7 @@
     "dev:frontend": "vite",
     "dev": "run-p dev:*",
     "logs": "convex logs",
-    "lint": "tsc -p convex && eslint convex"
+    "lint": "tsc -p convex && eslint convex && npx tsc --noEmit"
   },
   "dependencies": {
     "@blocknote/core": "^0.31.0",
