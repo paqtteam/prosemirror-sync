@@ -8,7 +8,7 @@ import {
 import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
 import { Step } from "@tiptap/pm/transform";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { SyncApi } from "../client";
 
 // How many steps we will attempt to sync in one request.
@@ -338,27 +338,30 @@ export function useInitialState(
   id: string,
   cacheKeyPrefix?: string
 ) {
-  const [initialWithoutCache, setInitial] = useState<
-    InitialState | undefined
-  >();
-  const initial = useMemo(() => {
-    if (initialWithoutCache) {
-      return initialWithoutCache;
-    }
+  const serverRef = useRef<{
+    id: string;
+    snapshot?: InitialState;
+  }>({ id });
+  const cachedState = useMemo(() => {
     return getCachedState(id, cacheKeyPrefix);
-  }, [initialWithoutCache]);
-  let data = initial;
+  }, [id, cacheKeyPrefix]);
   const serverInitial = useQuery(
     syncApi.getSnapshot,
-    initial ? "skip" : { id }
+    serverRef.current.snapshot && serverRef.current.id === id ? "skip" : { id }
   );
-  if (!initial && serverInitial && serverInitial.content !== null) {
-    data = {
-      initialContent: JSON.parse(serverInitial.content) as Content,
-      initialVersion: serverInitial.version,
-    };
-    setInitial(data);
+  const snapshot = useMemo(() => {
+    return (
+      serverInitial &&
+      serverInitial.content !== null && {
+        initialContent: JSON.parse(serverInitial.content) as Content,
+        initialVersion: serverInitial.version,
+      }
+    );
+  }, [serverInitial]);
+  if (snapshot || serverRef.current.id !== id) {
+    serverRef.current = { id, snapshot: snapshot || undefined };
   }
+  const data = serverRef.current.snapshot || cachedState;
 
   if (data) {
     return {
