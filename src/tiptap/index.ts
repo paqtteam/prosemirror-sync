@@ -369,7 +369,7 @@ export function useInitialState(
       ...data,
     };
   }
-  if (serverInitial) {
+  if (!cachedState && serverInitial?.content === null) {
     // We couldn't find it locally or on the server.
     // We could dynamically create a new document here,
     // not sure if that's generally the right pattern (vs. explicit creation).
