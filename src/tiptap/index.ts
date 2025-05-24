@@ -338,18 +338,20 @@ export function useInitialState(
   id: string,
   cacheKeyPrefix?: string
 ) {
-  const [initial, setInitial] = useState<InitialState | undefined>(() =>
-    getCachedState(id, cacheKeyPrefix)
-  );
+  const [initialWithoutCache, setInitial] = useState<
+    InitialState | undefined
+  >();
+  const initial = useMemo(() => {
+    if (initialWithoutCache) {
+      return initialWithoutCache;
+    }
+    return getCachedState(id, cacheKeyPrefix);
+  }, [initialWithoutCache]);
   let data = initial;
   const serverInitial = useQuery(
     syncApi.getSnapshot,
     initial ? "skip" : { id }
   );
-  const [loading, setLoading] = useState(!initial);
-  if (loading && serverInitial) {
-    setLoading(false);
-  }
   if (!initial && serverInitial && serverInitial.content !== null) {
     data = {
       initialContent: JSON.parse(serverInitial.content) as Content,
@@ -364,7 +366,7 @@ export function useInitialState(
       ...data,
     };
   }
-  if (!loading) {
+  if (serverInitial) {
     // We couldn't find it locally or on the server.
     // We could dynamically create a new document here,
     // not sure if that's generally the right pattern (vs. explicit creation).
