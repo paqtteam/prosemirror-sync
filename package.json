@@ -7,7 +7,7 @@
     "email": "support@convex.dev",
     "url": "https://github.com/get-convex/prosemirror-sync/issues"
   },
-  "version": "0.1.18",
+  "version": "0.1.19",
   "license": "Apache-2.0",
   "keywords": [
     "convex",
@@ -85,7 +85,7 @@
   "peerDependencies": {
     "@blocknote/core": "^0.29.1 || ^0.30.0 || ^0.31.0",
     "@tiptap/core": "^2.7.0",
-    "convex": ">=1.21.0 <1.25.0",
+    "convex": ">=1.21.0 <1.35.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-dom": "^18.3.1 || ^19.0.0"
   },
