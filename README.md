@@ -137,9 +137,10 @@ import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { api } from "../convex/_generated/api";
+import { BlockNoteEditor } from "@blocknote/core";
 
 export function MyComponent() {
-  const sync = useBlockNoteSync(api.example, "some-id");
+  const sync = useBlockNoteSync(api.example, "some-id", { BlockNoteEditor });
   return sync.isLoading ? (
     <p>Loading...</p>
   ) : sync.editor ? (
