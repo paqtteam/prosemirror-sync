@@ -89,14 +89,24 @@
     }
   },
   "peerDependencies": {
-    "@blocknote/core": "^0.29.1 || ^0.30.0 || ^0.31.0 || >=0.32.0-hackdays.0 || ^0.32.0",
+    "@blocknote/core": "^0.31.0 || ^0.32.0",
+    "@blocknote/mantine": "^0.31.0 || ^0.32.0",
+    "@blocknote/react": "^0.31.0 || ^0.32.0",
     "@tiptap/core": "^2.7.0",
     "convex": ">=1.21.0 <1.35.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-dom": "^18.3.1 || ^19.0.0"
   },
-  "optionalDependencies": {
-    "@blocknote/core": "^0.29.1 || ^0.30.0 || ^0.31.0 || >=0.32.0-hackdays.0"
+  "peerDependenciesMeta": {
+    "@blocknote/core": {
+      "optional": true
+    },
+    "@blocknote/mantine": {
+      "optional": true
+    },
+    "@blocknote/react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@blocknote/core": "0.31.3",
@@ -116,9 +126,5 @@
   },
   "main": "./dist/commonjs/client/index.js",
   "types": "./dist/commonjs/client/index.d.ts",
-  "module": "./dist/esm/client/index.js",
-  "dependencies": {
-    "@blocknote/mantine": "^0.31.3",
-    "@blocknote/react": "^0.32.0"
-  }
+  "module": "./dist/esm/client/index.js"
 }

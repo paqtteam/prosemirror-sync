@@ -11,9 +11,9 @@
     "lint": "tsc -p convex && eslint convex && npx tsc --noEmit"
   },
   "dependencies": {
-    "@blocknote/core": "0.32.0-hackdays.0",
-    "@blocknote/mantine": "0.32.0-hackdays.0",
-    "@blocknote/react": "0.32.0",
+    "@blocknote/core": "^0.32.0",
+    "@blocknote/mantine": "^0.32.0",
+    "@blocknote/react": "^0.32.0",
     "@convex-dev/prosemirror-sync": "file:..",
     "@mantine/core": "^7.5.3",
     "@tiptap/core": "^2.11.7",
@@ -44,6 +44,6 @@
     "npm-run-all2": "8.0.4",
     "typescript": "5.8.3",
     "typescript-eslint": "8.35.0",
-    "vite": "7.0.0"
+    "vite": "^6.3.5"
   }
 }
