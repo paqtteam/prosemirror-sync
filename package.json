@@ -119,6 +119,6 @@
   "module": "./dist/esm/client/index.js",
   "dependencies": {
     "@blocknote/mantine": "^0.31.3",
-    "@blocknote/react": "^0.31.3"
+    "@blocknote/react": "^0.32.0"
   }
 }
