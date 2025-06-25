@@ -7,20 +7,9 @@ import {
   type BlockNoteEditorOptions,
   nodeToBlock,
 } from "@blocknote/core";
-import { Schema } from "prosemirror-model";
+import { JSONContent } from "@tiptap/core";
 
-interface BlockNoteEditorInterface {
-  readonly pmSchema: Schema;
-}
-
-interface BlockNoteEditorCreator<Editor extends BlockNoteEditorInterface> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  create: (options: any) => Editor;
-}
-
-export type BlockNoteSyncOptions<
-  Editor extends BlockNoteEditorInterface = BlockNoteEditor,
-> = UseSyncOptions & {
+export type BlockNoteSyncOptions<Editor = BlockNoteEditor> = UseSyncOptions & {
   /**
    * If you pass options into the editor, you should pass them here, to ensure
    * the initialContent is parsed with the correct schema.
@@ -30,28 +19,62 @@ export type BlockNoteSyncOptions<
     Omit<BlockNoteEditorOptions<any, any, any>, "initialContent">
   >;
   /**
-   * The BlockNoteEditor from your installed version of BlockNote.
-   * If you see an error like:
-   * ```
-   * Property 'options' is protected but type 'BlockNoteEditor<BSchema, ISchema, SSchema>' is not a class derived from 'BlockNoteEditor<BSchema, ISchema, SSchema>'.
-   * ```
-   * You can pass your own BlockNoteEditor version here.
-   * This is a workaround for the types of your editor not matching the editor
-   * version used by prosemirror-sync.
+   * @deprecated Do `useBlockNoteSync<BlockNoteEditor>` instead.
+   *
    */
-  BlockNoteEditor?: BlockNoteEditorCreator<Editor>;
+  BlockNoteEditor?: Editor;
 };
 
-export function useBlockNoteSync<
-  Editor extends BlockNoteEditorInterface = BlockNoteEditor,
->(syncApi: SyncApi, id: string, opts?: BlockNoteSyncOptions<Editor>) {
+/**
+ * A hook to sync a BlockNote editor with a Convex document.
+ *
+ * Usually used like:
+ *
+ * ```tsx
+ * const sync = useBlockNoteSync(api.example, "some-id");
+ * ```
+ *
+ * If you see an error like:
+ * ```
+ * Property 'options' is protected but type 'BlockNoteEditor<BSchema, ISchema, SSchema>' is not a class derived from 'BlockNoteEditor<BSchema, ISchema, SSchema>'.
+ * ```
+ * You can pass your own BlockNoteEditor like:
+ * ```tsx
+ * import { BlockNoteEditor } from "@blocknote/core";
+ * //...
+ * const sync = useBlockNoteSync<BlockNoteEditor>(api.example, "some-id");
+ * ```
+ * This is a workaround for the types of your editor not matching the editor
+ * version used by prosemirror-sync.
+ *
+ * @param syncApi Wherever you exposed the sync api, e.g. `api.example`.
+ * @param id The document ID.
+ * @param opts Options to pass to the underlying BlockNoteEditor and sync opts.
+ * @returns The editor, loading state, and fn to create the initial document.
+ */
+export function useBlockNoteSync<Editor = BlockNoteEditor>(
+  syncApi: SyncApi,
+  id: string,
+  opts?: BlockNoteSyncOptions<Editor>
+):
+  | {
+      editor: null;
+      isLoading: true;
+      create?: (content: JSONContent) => Promise<void>;
+    }
+  | {
+      editor: null;
+      isLoading: false;
+      create: (content: JSONContent) => Promise<void>;
+    }
+  | {
+      editor: Editor;
+      isLoading: false;
+    } {
   const sync = useTiptapSync(syncApi, id, opts);
-  const Editor =
-    opts?.BlockNoteEditor ??
-    (BlockNoteEditor as unknown as BlockNoteEditorCreator<Editor>);
   const editor = useMemo(() => {
     if (sync.initialContent === null) return null;
-    const editor = Editor.create({
+    const editor = BlockNoteEditor.create({
       ...opts?.editorOptions,
       _headless: true,
     });
@@ -67,7 +90,7 @@ export function useBlockNoteSync<
         return false;
       });
     }
-    return Editor.create({
+    return BlockNoteEditor.create({
       ...opts?.editorOptions,
       _tiptapOptions: {
         ...opts?.editorOptions?._tiptapOptions,
@@ -104,7 +127,7 @@ export function useBlockNoteSync<
     } as const;
   }
   return {
-    editor,
+    editor: editor as unknown as Editor,
     isLoading: false,
   } as const;
 }

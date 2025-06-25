@@ -140,7 +140,7 @@ import { api } from "../convex/_generated/api";
 import { BlockNoteEditor } from "@blocknote/core";
 
 export function MyComponent() {
-  const sync = useBlockNoteSync(api.example, "some-id", { BlockNoteEditor });
+  const sync = useBlockNoteSync<BlockNoteEditor>(api.example, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
   ) : sync.editor ? (
