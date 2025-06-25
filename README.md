@@ -340,22 +340,13 @@ Missing features that aren't currently planned:
 In one terminal, run:
 
 ```sh
-npm install
-cd example
-npm install
-# Involves signing into Convex if necessary and deploying to a Convex.
-npm run dev:convex
+npm run setup
+npm run example
 ```
 
-And in another terminal, run the frontend:
+To make changes to the component and rebuild automatically:
 
 ```sh
-cd example
-npm run dev:frontend
-```
-
-Or both:
-
-```sh
+npm run setup
 npm run dev
 ```
