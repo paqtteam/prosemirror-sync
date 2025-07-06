@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.25
+
+- Support BlockNote ^0.33
+
+
 ## 0.1.24
 
 - Change the BlockNoteEditor to be a type parameter instead, as mismatched
