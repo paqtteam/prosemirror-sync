@@ -5,7 +5,13 @@ import {
   useQuery,
   Watch,
 } from "convex/react";
-import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
+import {
+  type AnyExtension,
+  type Content,
+  type Editor,
+  Extension,
+  type JSONContent,
+} from "@tiptap/core";
 import * as collab from "@tiptap/pm/collab";
 import { Step } from "@tiptap/pm/transform";
 import { useCallback, useMemo, useRef } from "react";
@@ -29,7 +35,7 @@ export function useTiptapSync(
   const log: typeof console.log = opts?.debug ? console.debug : () => {};
   const convex = useConvex();
   const initial = useInitialState(syncApi, id);
-  const extension = useMemo(() => {
+  const extension: AnyExtension | null = useMemo(() => {
     const { loading, ...initialState } = initial;
     if (loading || !initialState.initialContent) return null;
     return syncExtension(convex, id, syncApi, initialState, opts);
@@ -105,7 +111,7 @@ export function syncExtension(
   syncApi: SyncApi,
   initialState: InitialState,
   opts?: UseSyncOptions
-) {
+): AnyExtension {
   const log: typeof console.log = opts?.debug ? console.debug : () => {};
   let snapshotTimer: NodeJS.Timeout | undefined;
   const trySubmitSnapshot = (version: number, content: string) => {
