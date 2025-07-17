@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.26
+
+- Support 0.34 up to 1.0
+
 ## 0.1.25
 
 - Support BlockNote ^0.33
