@@ -15,8 +15,7 @@
     "collab",
     "prosemirror",
     "tiptap",
-    "sync",
-    "blocknote"
+    "sync"
   ],
   "type": "module",
   "scripts": {
@@ -24,7 +23,7 @@
     "dev": "run-p 'example' 'build:watch'",
     "setup": "npm i && npm run build && cd example && npm i && npx convex dev --once",
     "build": "npm run build:esm && npm run build:cjs",
-    "build:watch": "cd src && npx chokidar '../tsconfig.json' '*.ts' 'blocknote/**/*.ts' 'tiptap/**/*.ts' 'react/**/*.ts' 'component/**/*.ts' 'client/**/*.ts' -c 'npm run build' --initial",
+    "build:watch": "cd src && npx chokidar '../tsconfig.json' '*.ts' 'tiptap/**/*.ts' 'react/**/*.ts' 'component/**/*.ts' 'client/**/*.ts' -c 'npm run build' --initial",
     "build:esm": "tsc --project ./esm.json && npm run copy:dts:esm && echo '{\\n  \"type\": \"module\"\\n}' > dist/esm/package.json",
     "build:cjs": "tsc --project ./commonjs.json && npm run copy:dts:cjs && echo '{\\n  \"type\": \"commonjs\"\\n}' > dist/commonjs/package.json",
     "copy:dts:esm": "cpy 'src/**/*.d.ts' 'dist/esm/' --parents",
@@ -44,8 +43,7 @@
   "files": [
     "dist",
     "src",
-    "tiptap",
-    "blocknote"
+    "tiptap"
   ],
   "exports": {
     "./package.json": "./package.json",
@@ -73,13 +71,7 @@
         "default": "./dist/commonjs/tiptap/index.js"
       }
     },
-    "./blocknote": {
-      "import": {
-        "@convex-dev/component-source": "./src/blocknote/index.ts",
-        "types": "./dist/esm/blocknote/index.d.ts",
-        "default": "./dist/esm/blocknote/index.js"
-      }
-    },
+
     "./convex.config": {
       "import": {
         "@convex-dev/component-source": "./src/component/convex.config.ts",
@@ -89,29 +81,14 @@
     }
   },
   "peerDependencies": {
-    "@blocknote/core": ">=0.31.0 <=1.0.0",
-    "@blocknote/mantine": ">=0.31.0 <=1.0.0",
-    "@blocknote/react": ">=0.31.0 <=1.0.0",
     "@tiptap/core": "^3.0.9",
     "convex": ">=1.21.0 <1.35.0",
     "react": "^18.3.1 || ^19.0.0",
     "react-dom": "^18.3.1 || ^19.0.0"
   },
-  "peerDependenciesMeta": {
-    "@blocknote/core": {
-      "optional": true
-    },
-    "@blocknote/mantine": {
-      "optional": true
-    },
-    "@blocknote/react": {
-      "optional": true
-    }
-  },
+
   "devDependencies": {
-    "@blocknote/core": "0.35.0",
-    "@blocknote/mantine": "0.35.0",
-    "@blocknote/react": "0.35.0",
+
     "@eslint/js": "9.32.0",
     "@tiptap/core": "3.0.9",
     "@types/node": "18.19.120",

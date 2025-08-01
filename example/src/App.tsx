@@ -1,11 +1,8 @@
 import "./App.css";
 
 import { TipTapExample } from "./TiptapExample";
-import { BlockNoteExample } from "./BlockNoteExample";
 
 function App(props: { id: string }) {
-  const useBlockNote = props.id.startsWith("blocknote");
-  const editor = useBlockNote ? "BlockNote" : "Tiptap";
   return (
     <>
       <h1>ProseMirror + Convex Sync</h1>
@@ -13,27 +10,20 @@ function App(props: { id: string }) {
         This demonstrates syncing a ProseMirror document using Convex to provide
         real-time collaborative editing.
         <br />
-        It uses Tiptap or BlockNote for the in-browser editing and support for
+        It uses Tiptap for the in-browser editing and support for
         inline Markdown formatting, similar to Notion.
         <br />
         Share this URL to edit the same document, or test co-editing by opening
         multiple tabs with the same URL.
         <br />
-        The URL hash is the document ID. For demo purposes, it uses BlockNote if
-        the ID starts with "blocknote", otherwise it uses Tiptap.
-        <br />
       </div>
       <div className="card">
-        <strong>{editor}</strong>
-        {useBlockNote ? (
-          <BlockNoteExample id={props.id + "-blocknote"} />
-        ) : (
-          <TipTapExample id={props.id + "-tiptap"} />
-        )}
+        <strong>Tiptap</strong>
+        <TipTapExample id={props.id + "-tiptap"} />
       </div>
       <footer>
         <p className="read-the-docs">
-          Powered by {editor} (ProseMirror) + Convex + Vite + React + TypeScript
+          Powered by Tiptap (ProseMirror) + Convex + Vite + React + TypeScript
         </p>
         <a
           href="https://github.com/get-convex/prosemirror-sync"

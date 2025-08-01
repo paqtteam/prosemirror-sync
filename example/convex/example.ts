@@ -7,7 +7,7 @@ import { Transform, Step } from "@tiptap/pm/transform";
 import { EditorState } from "@tiptap/pm/state";
 import { extensions } from "../src/extensions";
 import { Schema } from "@tiptap/pm/model";
-import { BlockNoteEditor } from "@blocknote/core";
+
 
 const prosemirrorSync = new ProsemirrorSync(components.prosemirrorSync);
 export const {
@@ -30,16 +30,8 @@ export const {
     // save a text version of the document for text search, or generate
     // embeddings for vector search.
     const snapshotJSON = JSON.parse(snapshot);
-    let schema: Schema;
-    // A hack for our demo which uses both BlockNote and Tiptap.
-    if (id.endsWith("-blocknote")) {
-      // Parse the snapshot from BlockNote.
-      const editor = BlockNoteEditor.create({ _headless: true });
-      schema = editor.pmSchema;
-    } else {
-      // Fetching the content from Tiptap, using your extensions.
-      schema = getSchema(extensions);
-    }
+    // Fetching the content from Tiptap, using your extensions.
+    const schema = getSchema(extensions);
     const node = schema.nodeFromJSON(snapshotJSON);
     const content = node.textContent;
     await ctx.scheduler.runAfter(0, internal.example.updateDocSearchIndex, {
