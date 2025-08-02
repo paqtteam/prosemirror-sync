@@ -1,5 +1,5 @@
 {
-  "name": "prosemirror-sync",
+  "name": "@paqtteam/prosemirror-sync",
   "description": "Sync ProseMirror documents for Tiptap using this Convex component.",
   "repository": "github:paqtteam/prosemirror-sync",
   "homepage": "https://github.com/paqtteam/prosemirror-sync#readme",
@@ -49,24 +49,24 @@
     "./package.json": "./package.json",
     ".": {
       "import": {
-        "component-source": "./src/client/index.ts",
+        "@paqtteam/component-source": "./src/client/index.ts",
         "types": "./dist/esm/client/index.d.ts",
         "default": "./dist/esm/client/index.js"
       },
       "require": {
-        "component-source": "./src/client/index.ts",
+        "@paqtteam/component-source": "./src/client/index.ts",
         "types": "./dist/commonjs/client/index.d.ts",
         "default": "./dist/commonjs/client/index.js"
       }
     },
     "./tiptap": {
       "import": {
-        "component-source": "./src/tiptap/index.ts",
+        "@paqtteam/component-source": "./src/tiptap/index.ts",
         "types": "./dist/esm/tiptap/index.d.ts",
         "default": "./dist/esm/tiptap/index.js"
       },
       "require": {
-        "component-source": "./src/tiptap/index.ts",
+        "@paqtteam/component-source": "./src/tiptap/index.ts",
         "types": "./dist/commonjs/tiptap/index.d.ts",
         "default": "./dist/commonjs/tiptap/index.js"
       }
@@ -74,7 +74,7 @@
 
     "./convex.config": {
       "import": {
-        "component-source": "./src/component/convex.config.ts",
+        "@paqtteam/component-source": "./src/component/convex.config.ts",
         "types": "./dist/esm/component/convex.config.d.ts",
         "default": "./dist/esm/component/convex.config.js"
       }
