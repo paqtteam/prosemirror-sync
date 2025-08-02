@@ -106,5 +106,8 @@
   },
   "main": "./dist/commonjs/client/index.js",
   "types": "./dist/commonjs/client/index.d.ts",
-  "module": "./dist/esm/client/index.js"
+  "module": "./dist/esm/client/index.js",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  }
 }

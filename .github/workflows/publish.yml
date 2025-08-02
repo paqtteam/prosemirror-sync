@@ -1,0 +1,41 @@
+name: Publish to GitHub Package Registry
+
+on:
+  push:
+    tags: ["*"]
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  publish:
+    name: Publish package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write  # Required for publishing to GitHub Package Registry
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '18.20.8'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@convex-dev'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: |
+          npm run typecheck
+          npm run test
+
+      - name: Build package
+        run: npm run build
+
+      - name: Publish to GitHub Package Registry
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
