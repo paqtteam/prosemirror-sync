@@ -10,9 +10,10 @@ import {
 } from "convex/server";
 import { v, VString } from "convex/values";
 import { Mounts } from "../component/_generated/api";
-import { vClientId } from "../component/schema";
 import { Schema, Node } from "@tiptap/pm/model";
 import { Step, Transform } from "@tiptap/pm/transform";
+
+const vClientId = v.union(v.string(), v.number());
 
 export type SyncApi = ApiFromModules<{
   sync: ReturnType<ProsemirrorSync["syncApi"]>;
