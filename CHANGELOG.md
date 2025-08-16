@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.28 alpha
+## 0.1.28
 
 - Imports with file extensions to help module resolution for NodeNext
 
