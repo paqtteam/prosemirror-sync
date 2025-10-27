@@ -4,7 +4,7 @@ import { Doc } from "./_generated/dataModel";
 import { vClientId } from "./schema";
 import { api } from "./_generated/api";
 
-const MAX_DELTA_FETCH = 1000;
+const MAX_DELTA_FETCH = 100;
 const MAX_SNAPSHOT_FETCH = 10;
 
 export const submitSnapshot = mutation({

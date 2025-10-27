@@ -9,8 +9,8 @@ import {
   queryGeneric,
 } from "convex/server";
 import { v, VString } from "convex/values";
-import { Mounts } from "../component/_generated/api";
-import { vClientId } from "../component/schema";
+import { Mounts } from "../component/_generated/api.js";
+import { vClientId } from "../component/schema.js";
 import { Schema, Node } from "@tiptap/pm/model";
 import { Step, Transform } from "@tiptap/pm/transform";
 

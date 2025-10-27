@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.28
+
+- Imports with file extensions to help module resolution for NodeNext
+
+## 0.1.27
+
+- Reduce the number of deltas in one round to avoid returning too long of arrays of steps
+  when catching up old clients
+
 ## 0.1.26
 
 - Support 0.34 up to 1.0
